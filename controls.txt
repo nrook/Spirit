@@ -1,0 +1,26 @@
+a - card
+b - move
+c - 
+d - card
+e - card
+f - card
+g - 
+h - move
+i - inventory
+j - move
+k - move
+l - move
+m - 
+n - move
+o - 
+p - 
+q - 
+r - card
+s - card
+t - 
+u - move
+v - 
+w - card
+x - 
+y - move
+z - 
