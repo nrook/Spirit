@@ -94,7 +94,7 @@ class Level(list):
 # Remember that small height means being near the top.
         if height < self.__height_map[coords]:
             self.__composite_map[coords] = character
-            self.__height_map = height
+            self.__height_map[coords] = height
 
         return
 
@@ -110,7 +110,7 @@ class Level(list):
 
         if height == self.__height_map[coords]:
             (self.__composite_map[coords], self.__height_map[coords]) = \
-                __getCharacterBelow(coords, height)
+                self.__getCharacterBelow(coords, height)
 
         return
 

@@ -218,6 +218,7 @@ class Player(Dude):
                     self.currentLevel.UI.updateScreenFromPrimaryDisplay()
     
     def die(self):
+        print "Ack!  You died!"
         sys.exit()
     
     def isPlayer(self):
@@ -354,12 +355,12 @@ class Sidebar(object):
         """
 
         self.__array = arrays.empty_str_array(config.STATUS_DIMENSIONS)
-        arrays.print_str_to_end_of_line((61, 0), name, self.__array)
-        arrays.print_str_to_end_of_line((61, 1), "Floor %d" % floor,
+        arrays.print_str_to_end_of_line((1, 0), name, self.__array)
+        arrays.print_str_to_end_of_line((1, 1), "Floor %d" % floor,
                                         self.__array)
-        arrays.print_str_to_end_of_line((61, 2), "Level %d" % char_level,
+        arrays.print_str_to_end_of_line((1, 2), "Level %d" % char_level,
                                         self.__array)
-        arrays.print_str_to_end_of_line((61, 4), 
+        arrays.print_str_to_end_of_line((1, 4), 
                                         "HP: %d(%d)" % (cur_HP, max_HP),
                                         self.__array)
         

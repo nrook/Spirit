@@ -10,7 +10,7 @@ To do:
 
 LOAD_FROM_SAVE = False
 LOAD_FROM_RANDOM_DUNGEON = True
-USE_PROFILER = True
+USE_PROFILER = False
 
 from curses import wrapper
 
@@ -52,7 +52,7 @@ def main(win = None):
 
     display.init()
     display.display_main_screen(curlev.getArray(),
-                                curlev.getPlayer(),
+                                curlev.getPlayer().coords,
                                 curlev.messages.getArray(),
                                 curlev.getPlayer().getSidebar().getArray())
     
@@ -102,9 +102,9 @@ def main(win = None):
                 pass
         
         display.display_main_screen(curlev.getArray(),
-                                    curlev.getPlayer(),
+                                    curlev.getPlayer().coords,
                                     curlev.messages.getArray(),
-                                    curlev.getPlayer().sidebar.getArray())
+                                    curlev.getPlayer().getSidebar().getArray())
         # UIDisplay.setCenteredMap(curlev)
         # UIDisplay.playerStatus.getStatusFromPlayer(curlev.player)
         # UIDisplay.updateScreenFromPrimaryDisplay()

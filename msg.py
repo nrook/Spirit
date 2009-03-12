@@ -34,6 +34,17 @@ class MessageBuffer(object):
         else:
             self.message_list = list(iterable_of_messages)
 
+    def append(self, element):
+        """
+        Append element, a string, to the MessageBuffer, so that element
+        is the most recent message available.
+        """
+        
+# Don't add non-string things to the list by mistake!
+        assert type(element) == type("")
+
+        self.message_list.append(element)
+
     def getArray(self):
         """
         Return an array representing the last few messages, where "the last few
@@ -44,6 +55,6 @@ class MessageBuffer(object):
         lines_to_use = self.message_list[-self.dimensions[1]:]
         lines_to_use.reverse()
         for i in range(len(lines_to_use)):
-            print_str_to_end_of_line((0, i), lines_to_use[i], ret_array)
+            arrays.print_str_to_end_of_line((0, i), lines_to_use[i], ret_array)
 
         return ret_array

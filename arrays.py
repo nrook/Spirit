@@ -3,8 +3,10 @@ Contains a number of helpful functions for working with 2-D arrays, especially
 arrays of characters.  Arrays of characters are arrays of one-element strings.
 """
 
+import coordinates
 import numpy
 import config
+import exc
 
 def index(element, array):
     """
@@ -114,7 +116,8 @@ def print_str_to_end_of_line(initial_coords, string_used, array):
         "String of length %d starting at %d needs more than %d array size."
         % (len(string_used), initial_coords[0], array.shape[0]))
 
-    printed_str = "".join(string_used, config.TRANSPARENT_CHARACTER * overflow_chars)
+    printed_str = "".join(
+        (string_used, config.TRANSPARENT_GLYPH * overflow_chars))
 
     print_str(initial_coords, printed_str, array)
 
@@ -155,7 +158,7 @@ def copy_array_centered_at(dst_nw_corner, block_dims, src_center, src_array,
     dst_array - the destination array.
     """
 
-    src_rect = coordinates.centered_rect_size(src_center, block_dims)
+    src_rect = coordinates.centeredRect(src_center, block_dims)
     src_nw_corner = src_rect[0]
     copy_array_subset_lenient(src_nw_corner, dst_nw_corner, block_dims, 
                               src_array, dst_array)
@@ -218,12 +221,12 @@ def copy_array_subset(src_nw_corner, dst_nw_corner, block_dims,
     actually in the arrays provided.
     """
 
-    check_in_array(src_nw_corner, src_array.shape)
-    check_in_array(dst_nw_corner, dst_array.shape)
-    check_in_array(coordinates.add(coordinates.add(
+    exc.check_in_array(src_nw_corner, src_array.shape)
+    exc.check_in_array(dst_nw_corner, dst_array.shape)
+    exc.check_in_array(coordinates.add(coordinates.add(
                                    src_nw_corner, block_dims),
                    (-1, -1)), src_array.shape)
-    check_in_array(coordinates.add(coordinates.add(
+    exc.check_in_array(coordinates.add(coordinates.add(
                                    dst_nw_corner, block_dims),
                    (-1, -1)), dst_array.shape)
 
@@ -233,3 +236,18 @@ def copy_array_subset(src_nw_corner, dst_nw_corner, block_dims,
                 src_array[coordinates.add(src_nw_corner, (x,y))]
 
     return
+
+def copy_entire_array(dst_nw_corner, src_array, dst_array):
+    """
+    Copy the entire array, src_array, into dst_array, with
+    src_array[0,0] == dst_array[dst_nw_corner], etc.
+    
+    dst_nw_corner - a tuple of integers representing the coordinates
+        into which src_array[0,0] will be copied.
+    block_dims - the di-wait, what the fuck?
+    src_array - the array to be copied.
+    dst_array - the array into which src_array is copied.
+    """
+
+    copy_array_subset((0, 0), dst_nw_corner, src_array.shape,
+                      src_array, dst_array)
