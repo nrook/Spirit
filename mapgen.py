@@ -190,7 +190,7 @@ def populate_level(pop_level, monster_fact):
     level_secorner = [dim - 1 for dim in pop_level.dimensions]
 
     for i in range(NUMBER_OF_MONSTERS):
-        monster_to_be_made = monster_fact.create("nurse")
+        monster_to_be_made = monster_fact.getRandomMonster()
         monster_has_been_created = False
         while not monster_has_been_created:
             monster_coords = rng.randomPointInRect(level_nwcorner, level_secorner)

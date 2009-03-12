@@ -249,6 +249,7 @@ def getMonster(linelist, initline = 0):
                         int(attrDict["atk"]),
                         int(attrDict["def"]),
                         int(attrDict["level"]),
+                        None
                         )
 
 def findTag(linelist, tag, startLine = 0, dontGoPast = None):

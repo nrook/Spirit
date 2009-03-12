@@ -299,6 +299,14 @@ class MonsterFactory(list):
     
 #    def __init__(self, *args, **kwds):
 #        return list.__init__(self, *args, **kwds)
+
+    def getRandomMonster(self):
+        """
+        Get a duplicate of a random monster in the MonsterFactory.
+        """
+
+        prototype = rng.choice(self)
+        return duplicate(prototype)
     
     def create(self, key, coords = None, currentLevel = None):
         """
@@ -306,18 +314,7 @@ class MonsterFactory(list):
         """
         
         monsterPrototype = self.getPrototype(key)
-        return Monster(monsterPrototype.name,
-                       coords,
-                       monsterPrototype.glyph,
-                       monsterPrototype.AICode,
-                       monsterPrototype.speed,
-                       monsterPrototype.max_HP,
-                       monsterPrototype.tags[:] if monsterPrototype.tags is not None else None,
-                       monsterPrototype.attack,
-                       monsterPrototype.defense,
-                       monsterPrototype.char_level,
-                       currentLevel,
-                      )
+        return duplicate(monsterPrototype, coords, currentLevel)
     
     def getPrototype(self, key):
         """
@@ -371,3 +368,23 @@ class Sidebar(object):
         Return an array representing the contents of this Sidebar.
         """
         return self.__array
+
+def duplicate(prototype, coords = None, currentLevel = None):
+        """
+        Get a duplicate of the monster prototype supplied.  If a currentLevel
+        is supplied as well, then the Monster is initialized on that Level; if
+        coords are supplied, the Monster begins on those coordinates.
+        """
+        
+        return Monster(prototype.name,
+                       coords,
+                       prototype.glyph,
+                       prototype.AICode,
+                       prototype.speed,
+                       prototype.max_HP,
+                       prototype.tags[:] if prototype.tags is not None else None,
+                       prototype.attack,
+                       prototype.defense,
+                       prototype.char_level,
+                       currentLevel,
+                      )
