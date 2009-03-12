@@ -1,0 +1,446 @@
+"""
+Handles display details that are not implementation specific.
+"""
+
+import copy
+
+import interface
+import config
+import coordinates
+import kb
+kp = kb.kp
+import log
+
+class ScreenKing(object):
+    
+    def __init__(self, mapPanel = None, dimensions = config.DEFAULT_DIMENSIONS, messageBuffer = None, status = None):
+        
+        self.mapPanel = Panel(config.MAP_DIMENSIONS)
+        self.primaryDisplay = PrimaryDisplay(dimensions)
+        
+        if messageBuffer is not None:
+            self.messageBuffer = messageBuffer
+        else:
+            self.messageBuffer = MessageBuffer()
+        
+        if status is not None:
+            self.playerStatus = status
+        else:
+            self.playerStatus = PlayerStatus()
+        
+        self.updatePrimaryDisplay()
+    
+    def setCenteredMap(self, mapLevel):
+        self.mapPanel = mapLevel.centeredPanel(mapLevel.player.coords, self.mapPanel.dimensions)
+    
+    def updatePrimaryDisplay(self):
+        self.primaryDisplay.mapPanel = self.mapPanel
+        self.primaryDisplay.setMessagePanel(self.messageBuffer)
+        self.primaryDisplay.setStatusPanel(self.playerStatus)
+    
+    def updateScreenFromPrimaryDisplay(self):
+        self.updatePrimaryDisplay()
+        self.primaryDisplay.getPanel().update()
+    
+    def prompt(self, question):
+        """
+        Ask the user "question" on the primary display; return True or False.
+        """
+        
+        while 1:
+            self.messageBuffer.append(question)
+            self.updateScreenFromPrimaryDisplay()
+            answer = kb.getKey("boolean")
+            if answer == kp.YES:
+                return True
+            if answer == kp.NO:
+                return False
+
+class PrimaryDisplay(object):
+    """
+    The primary display of the game, on a standard screen.
+    
+    The primary display consists of:
+    
+    1. A "map" panel, used to display the player's surroundings.
+    2. A "messages" panel, used to display messages to the player.
+    3. A "status" panel, used to describe the current character's status.
+    
+    The observant may note that this is stolen wholesale from Crawl.  Ah well.
+    """
+    
+    def __init__(self, dimensions = config.mv.dimensions, mapPanel = None,
+                 messagePanel = None, statusPanel = None):
+        
+        #Instance variables: mapPanel, messagePanel, statusPanel
+        
+        self.dimensions = dimensions
+        if messagePanel is None:
+            self.messagePanel = Panel(config.MESSAGES_DIMENSIONS)
+        else:
+            self.messagePanel = messagePanel
+        
+        if statusPanel is None:
+            self.statusPanel = Panel(config.STATUS_DIMENSIONS)
+        else:
+            self.statusPanel = statusPanel
+        
+        if mapPanel is None:
+            self.mapPanel = Panel(config.MAP_DIMENSIONS)
+        else:
+            self.mapPanel = mapPanel
+    
+    def getPanel(self):
+        return combineVertical(combineHorizontal(self.mapPanel, self.statusPanel), self.messagePanel)
+    
+    def setMap(self, mapLevel):
+        """
+        Updates the map, using the level provided to generate a panel.
+        
+        The panel then displayed is centered on the player.  Note that
+        this function does not actually update the map on the screen; the
+        update() function is required to do that.
+        """
+        
+        self.mapPanel = mapLevel.centeredPanel(mapLevel.player.coords, self.mapPanel.dimensions)
+    
+    def setMessagePanel(self, messages):
+        """
+        Updates the screen, using the MessageBuffer provided to make a panel.
+        """
+        
+        self.messagePanel = messages.getPanel(self.messagePanel.dimensions[1], self.messagePanel.dimensions[0])
+    
+    def setStatusPanel(self, status):
+        """
+        Updates the screen, using the PlayerStatus provided to make a panel.
+        """
+        
+        self.statusPanel = status.getPanel(self.statusPanel.dimensions[0])
+    
+    def update(self):
+        """Display the display's current state on the screen."""
+        
+        self.getPanel().update()
+    
+    def prompt(self, question):
+        """Ask the player a yes/no question, returning True or False."""
+        
+        
+
+class MessageBuffer(list):
+    """
+    A buffer of messages to the player, representing various creature actions.
+    
+    Note that the message with index 0 is the oldest one.
+    """
+    
+    def __init__(self):
+        
+        list.__init__(self)
+        self.history = []
+    
+    def getPanel(self, height = 1, width = 80):
+        retPanel = Panel((width, height))
+        
+        if len(self) < height:
+            for y in range(1, height):
+                if y < len(self) + 1:
+                    retPanel[y] = self[-y].ljust(80)
+                else:
+                    retPanel[y] = " " * 80
+        else:
+            for y in range(1, height):
+                retPanel[y] = self[-y].ljust(80)
+        
+        return retPanel
+    
+    def archive(self):
+        self.history.extend(self)
+        del self[:]
+
+class PlayerStatus(object):
+    """
+    Shows the player's current status, as seen on the screen.
+    
+    Note that PlayerStatus is merely a display object, and thus should only be
+    receiving information, not giving it.
+    """
+    
+    def __init__(self, curHP = 12, maxHP = 12, dungeonLevel = 1):
+        """If no variables are given, a placeholder status is used."""
+        
+        #I haven't actually implemented most of the stuff here yet
+        #So here's some default values!
+        
+        name = "John Paul"
+        playerLevel = 1
+        weaponDescription = "+2 Blinding"
+        armorDescription = "+1 Reflect"
+        deckSize = 52
+        cardKeys = ('a', 's', 'd', 'f', 'g', 'r', 't')
+        cardNames = ("bull", "linebacker", "housecat", "musketeer", "linebacker", "zombie", "illusionist")
+
+        dungeonLevelName = "Floor %d" % dungeonLevel
+        
+        self.name = name
+        self.dungeonLevelName = dungeonLevelName
+        self.playerLevel = playerLevel
+        self.curHP = curHP
+        self.maxHP = maxHP
+        self.weaponDescription = weaponDescription
+        self.armorDescription = armorDescription
+        self.deckSize = deckSize
+        self.cardKeys = cardKeys
+        self.cardNames = cardNames
+    
+    def getStatusFromPlayer(self, player):
+        """
+        Use the player status provided to set as many variables as possible.
+        """
+        
+        self.name = player.name
+        self.curHP = player.curHP
+        self.maxHP = player.maxHP
+        self.dungeonLevelName = "Floor %d" % player.currentLevel.floor
+    
+    def getPanel(self, width = 21):
+        retPanel = Panel((width, 17)) #yes, height is hardcoded
+        
+        retPanel[0] = (" %s" % self.name).ljust(width)
+        retPanel[1] = (" %s" % self.dungeonLevelName).ljust(width)
+        retPanel[2] = (" Level %d" % self.playerLevel).ljust(width)
+        #retPanel[3] intentionally left blank
+        retPanel[4] = (" HP: %d(%d)" % (self.curHP, self.maxHP)).ljust(width)
+        retPanel[5] = (" Weapon: %s" % self.weaponDescription).ljust(width)
+        retPanel[6] = (" Armor: %s" % self.armorDescription).ljust(width)
+        #retPanel[7] intentionally left blank
+        #retPanel[8] intentionally left blank
+        retPanel[9] = (" Deck (%d):" % self.deckSize).ljust(width)
+        for i in range(0, 6):
+            retPanel[i + 10] = (" %s - %s" % (self.cardKeys[i], self.cardNames[i])).ljust(width)
+        
+        return retPanel
+
+class Display(list):
+    """
+    A list of Panels stacked upon each other.
+    
+    Panel 0 is on top, and other panels are below it in numerical order.
+    """
+    
+    def __str__(self):
+        return str(self.fullPanel)
+    
+    def refresh(self):
+        self.fullPanel = copy.deepcopy(self[0])
+        for panelid in range(1, len(self)):
+            self.fullPanel = overlay(self.fullPanel, self[panelid])
+    
+    def getFullPanel(self):
+        self.refresh()
+        
+        return self.fullPanel
+    
+    def update(self):
+        self.fullPanel.update()
+    
+
+class Panel(object):
+    """
+    A 2D array of characters.
+    """
+    
+    def __init__(self, dimensions, fillchar = config.TRANSPARENT_GLYPH, transparentchar = None):
+        """
+        Creates a panel.
+        """
+        
+        #local variables: self.arr, self.dimensions, self.transparentChar
+
+        if len(fillchar) != 1:
+            raise ValueError("fillchar is longer than a single character.")
+        
+        self.arr = numpy.array([[fillchar for x in range(dimensions[0])]] * dimensions[1])
+        self.dimensions = dimensions
+        if transparentchar is None:
+            self.transparentChar = fillchar
+        else:
+            self.transparentChar = transparentchar
+            
+                
+    def __str__(self):
+        ret_seq = []
+        for y in self.dimensions[1]:
+            ret_seq.append([])
+            for x in self.dimensions[0]:
+                ret_seq[-1].append(self.getc((x, y)))
+
+        return "\n".join(["".join(line) for line in ret_seq)
+                
+        
+    def putc(self, coords, char):
+        """
+        Change the character at the given coords to the single character char.
+        """
+        
+        self.arr[coords] = char
+
+        # self[coords[1]] = self[coords[1]][:coords[0]] + char + self[coords[1]][(coords[0]+1):]
+        
+    def getc(self, coords):
+        """
+        Return the character at these coordinates.
+        """
+        
+        return self.arr[coords]
+        # return self[coords[1]][coords[0]]
+    
+    def erase(self, coords):
+        """
+        Replaces the character at these coords with the transparent character.
+        """
+        
+        self.putc(coords, self.transparentChar)
+    
+    def movec(self, origcoords, newcoords):
+        """
+        Takes the character on the original square, and moves it to a new one.
+        
+        The original square is replaced by the transparent character.
+        Whatever was on the new square is lost.
+        """
+        c = self.getc(origcoords)
+        self.erase(origcoords)
+        self.putc(newcoords, c)
+    
+    def subpanel(self, upperLeftCorner, lowerRightCorner):
+        """
+        Returns a panel made up of the rectangle between the corners specified.
+        
+        If the rectangle contains space that is outside the dimensions of this
+        panel itself, this space will be filled by the transparent character of
+        this panel.
+        """
+        
+        trueLowerRightCorner = coordinates.add(lowerRightCorner, (1, 1))
+        dim = coordinates.subtract(coordinates.add(lowerRightCorner, (1, 1)), upperLeftCorner)
+        retPanel = Panel(dim, ' ')
+
+        for y in range(0, dim[1]):
+        
+        for y in range(0, dim[1]):
+            if y < -upperLeftCorner[1]:
+                retPanel[y] = str(self.transparentChar) * dim[0] #empty line
+            elif y < -upperLeftCorner[1] + self.dimensions[1]:
+                leftSpaceFactor = upperLeftCorner[0] * -1
+                rightSpaceFactor = lowerRightCorner[0] - self.dimensions[0] + 1
+                trueLeftX = upperLeftCorner[0] if upperLeftCorner[0] >= 0 else 0
+                trueRightX = lowerRightCorner[0] if lowerRightCorner[0] >= 0 else 0
+                
+                retPanel[y] =  ((self.transparentChar * (leftSpaceFactor)) + 
+                               self[y + upperLeftCorner[1]][trueLeftX:(trueRightX + 1)] +
+                               (self.transparentChar * (rightSpaceFactor)))
+            else:
+                retPanel[y] = str(self.transparentChar) * dim[0] #empty line
+        
+        return retPanel
+    
+    def update(self):
+        """
+        Causes self to be displayed on the terminal.
+        """
+        
+        interface.update(self)
+    
+
+def overlay(overPanel, underPanel):
+    """
+    Lay overPanel over underPanel where transparent, returning a new, third panel.
+    
+    If overPanel and underPanel are not the same size, unexpected behavior
+    may result.
+    """
+    
+    retPanel = copy.deepcopy(overPanel)
+    
+    for x in range(overPanel.dimensions[0]):
+        for y in range(overPanel.dimensions[1]):
+            if overPanel.getc((x, y)) == overPanel.transparentChar:
+                retPanel.putc((x, y), underPanel.getc((x, y)))
+    
+    return retPanel
+
+def combineHorizontal(leftPanel, rightPanel):
+    """Combine two panels horizontally."""
+    
+    if leftPanel.dimensions[1] != rightPanel.dimensions[1]:
+        raise ValueError("Planes must have identical height to be combined horizontally.")
+    
+    retPanel = Panel((leftPanel.dimensions[0] + rightPanel.dimensions[0], leftPanel.dimensions[1]))
+    
+    for y in range(leftPanel.dimensions[1]):
+        retPanel[y] = leftPanel[y] + rightPanel[y]
+    
+    return retPanel
+
+def combineVertical(topPanel, bottomPanel):
+    """Combine two panels vertically."""
+    
+    if topPanel.dimensions[0] != bottomPanel.dimensions[0]:
+        raise ValueError("Planes must have identical width to be combined vertically.")
+    
+    retPanel = Panel((topPanel.dimensions[0], topPanel.dimensions[1] + bottomPanel.dimensions[1]))
+    
+    for y in range(0, topPanel.dimensions[1]):
+        retPanel[y] = topPanel[y]
+    
+    for y in range(topPanel.dimensions[1], topPanel.dimensions[1] + bottomPanel.dimensions[1]):
+        retPanel[y] = bottomPanel[y - topPanel.dimensions[1]]
+    
+    return retPanel
+
+def main(win):
+    interface.initialize(win)
+    
+    panelMonsters = Panel((80, 24), ' ', ' ')
+    panelDungeon = Panel((80, 24), '#', ' ')
+    
+    disp = Display()
+    disp.append(panelMonsters)
+    disp.append(panelDungeon)
+    
+    charcoords = (40, 12)
+    disp[0].putc(charcoords, '@')
+    disp.refresh()
+    disp.update()
+    
+    while 1:
+        key = interface.getkey()
+        if key == ord('q'):
+            return
+        direction = config.DIRECTION_SWITCH[key]
+        disp[0].movec(charcoords, (charcoords[0] + direction[0], charcoords[1] + direction[1]))
+        charcoords = (charcoords[0] + direction[0], charcoords[1] + direction[1])
+        disp.refresh()
+        disp.update()
+    
+    interface.waitforq()
+
+if __name__ == "__main__":
+    #Test suite.
+    
+    """overPan = Panel(4, 6, '#', ' ')
+    print str(overPan) + '\n'
+    underPan = Panel(4, 6, 'x', ' ')
+    print str(underPan) + '\n'
+    overPan.putc(1, 2, ' ')
+    print str(overPan) + '\n'
+    transPan = overlay(overPan, underPan)
+    print str(transPan) + '\n'
+    disp = Display()
+    disp.append(overPan)
+    disp.append(underPan)
+    disp.refresh()
+    print "Display:"
+    print disp"""
