@@ -65,6 +65,9 @@ def centeredRect(center, dimensions):
     rectangle as its first element and the lower right as its second.
     If the dimensions are even, the algorithm puts the centered square at the
     upper-left corner of the center.
+
+    Note that centeredRect() will not always return valid coordinates -
+    sometimes, it may return negative coordinates.
     """
     
     if dimensions[0] % 2 == 0:

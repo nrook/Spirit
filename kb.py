@@ -2,8 +2,6 @@
 Get keypresses and translate them to easily-understood constants.
 """
 
-
-
 class kp:
     """
     A glorified enum for keypress codes used by the program itself.
@@ -62,12 +60,12 @@ tTables = {
 "boolean" : booleanQuestionTranslationTable,
 }
 
-import interface
+import tcod_display as display
 
 def getKey(mode = "main"):
     """Get a keypress.  "mode" is a string indicating the used key table."""
     
-    key = interface.getkey()
+    key = display.wait_for_key()
     usedTranslationTable = tTables[mode]
     if key in usedTranslationTable:
         return usedTranslationTable[key]

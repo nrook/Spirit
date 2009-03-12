@@ -17,8 +17,9 @@ from curses import wrapper
 if USE_PROFILER:
     import cProfile
 
-import interface
-import display
+import tcod_display as display
+# import interface
+# import display
 import level
 import dude
 import config
@@ -30,8 +31,8 @@ import action
 
 import log
 
-def main(win):
-    interface.initialize(win)
+def main(win = None):
+    # interface.initialize(win)
     
     mainMonsterFactory = fileio.getMonsterFactory(
                          fileio.getFile("monsters.dat"))
@@ -48,20 +49,26 @@ def main(win):
         
         player = dude.Player("John Stenibeck", (15, 4))
         curlev.addPlayer(player)
+
+    display.init()
+    display.display_main_screen(curlev.getArray(),
+                                curlev.getPlayer(),
+                                curlev.messages.getArray(),
+                                curlev.getPlayer().getSidebar().getArray())
     
-    UIDisplay = display.ScreenKing()
-    UIDisplay.setCenteredMap(curlev)
-    UIDisplay.playerStatus.getStatusFromPlayer(curlev.player)
-    UIDisplay.updateScreenFromPrimaryDisplay()
-    curlev.UI = UIDisplay
+#    UIDisplay = display.ScreenKing()
+#    UIDisplay.setCenteredMap(curlev)
+#    UIDisplay.playerStatus.getStatusFromPlayer(curlev.player)
+#    UIDisplay.updateScreenFromPrimaryDisplay()
+#    curlev.UI = UIDisplay
     
     while 1:
         curlev.dudeLayer.generateQueue() #list of actors, in order of action
         
         for currentDude in curlev.dudeLayer.queue:
             
-            if currentDude == curlev.player:
-                UIDisplay.messageBuffer.archive()
+            # if currentDude == curlev.player:
+                # curlev.messages.archive()
             
             dudeAction = currentDude.getAction()
             if dudeAction.getCode() == "QUIT":
@@ -77,29 +84,34 @@ def main(win):
                 new_floor = curlev.floor + 1
                 curlev = mapgen.randomLevel(new_floor, player, mainMonsterFactory)
                 curlev.player.levelUp()
-                UIDisplay.messageBuffer.append("Welcome to the next floor!")
+                curlev.messages.append("Welcome to the next floor!")
                 # Restart the dude list.
                 break
             elif dudeAction.getCode() == "STDATK":
                 damage = action.damage(currentDude.attack, dudeAction.target.defense, currentDude.char_level, dudeAction.target.char_level)
-                UIDisplay.messageBuffer.append(dudeAction.message % {
+                curlev.messages.append(dudeAction.message % {
                                 "SOURCE_NAME": currentDude.getName(),
                                 "DAMAGE": damage,
                                 "TARGET_NAME": dudeAction.target.getName(),
                                 })
-                dudeAction.target.curHP -= damage
+                dudeAction.target.cur_HP -= damage
                 dudeAction.target.checkDeath()
             elif dudeAction.getCode() == "WAIT":
                 pass
             else:
                 pass
-            
-        UIDisplay.setCenteredMap(curlev)
-        UIDisplay.playerStatus.getStatusFromPlayer(curlev.player)
-        UIDisplay.updateScreenFromPrimaryDisplay()
+        
+        display.display_main_screen(curlev.getArray(),
+                                    curlev.getPlayer(),
+                                    curlev.messages.getArray(),
+                                    curlev.getPlayer().sidebar.getArray())
+        # UIDisplay.setCenteredMap(curlev)
+        # UIDisplay.playerStatus.getStatusFromPlayer(curlev.player)
+        # UIDisplay.updateScreenFromPrimaryDisplay()
 
 def entry():
-    wrapper(main)
+    main()
+    # wrapper(main)
 
 def prof():
     cProfile.run('entry()', 'profile.pr')

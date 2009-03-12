@@ -7,12 +7,14 @@ All players and monsters should be derived from Dude.
 import sys
 import copy
 
+import exc
 import rng
 import config
 import symbol
 import fixedobj
 import action
 import coordinates
+import arrays
 import fileio
 import kb
 kp = kb.kp
@@ -53,7 +55,7 @@ class Dude(fixedobj.FixedObject):
     other classes derived from it.
     """
     def __init__(self, coords = (0, 0), glyph = symbol.Glyph('!'),
-                 speed = 12, maxHP = 2, currentLevel = None, name = "Unnamed",
+                 speed = 12, max_HP = 2, currentLevel = None, name = "Unnamed",
                  attack = 1, defense = 0, tags = None, char_level = 1,
                  passableTerrain = (symbol.Glyph('#'),symbol.Glyph('.'))):
         
@@ -61,8 +63,8 @@ class Dude(fixedobj.FixedObject):
         self.name = name
         self.speed = speed
         self.passableTerrain = passableTerrain
-        self.maxHP = maxHP
-        self.curHP = self.maxHP
+        self.max_HP = max_HP
+        self.cur_HP = self.max_HP
         self.attack = attack
         self.defense = defense
         self.char_level = char_level
@@ -117,7 +119,7 @@ class Dude(fixedobj.FixedObject):
         Returns True if HP <= 0, or if the dude is dead for some other reason.
         """
         
-        return self.curHP <= 0
+        return self.cur_HP <= 0
     
     def checkDeath(self):
         """If dead, die."""
@@ -131,12 +133,12 @@ class Dude(fixedobj.FixedObject):
     
     def setHP(self, newHP):
         """
-        Set the dude's HP to newHP or to its maxHP, whichever is lower.
+        Set the dude's HP to newHP or to its max_HP, whichever is lower.
         """
-        if newHP > self.maxHP:
-            self.curHP = self.maxHP
+        if newHP > self.max_HP:
+            self.cur_HP = self.max_HP
         else:
-            self.curHP = newHP
+            self.cur_HP = newHP
 
 class Player(Dude):
     """
@@ -150,6 +152,39 @@ class Player(Dude):
         	max_HP = 12 + 6 * char_level
 
         Dude.__init__(self, coords, symbol.Glyph('@'), speed, max_HP, currentLevel, name, 40, 100, ["proper_noun"], char_level)
+
+        if currentLevel is not None:
+            self.__sidebar = Sidebar(name, currentLevel.floor, char_level, 
+                                     cur_HP, max_HP)
+        else:
+# If there is not yet a currentLevel to ask which floor you're on yet, put off
+# generating the Sidebar until it is first needed.
+            self.__sidebar = None
+
+    def getSidebar(self):
+        """
+        Get the sidebar of this player, creating it if necessary.
+        """
+
+        self.updateSidebar()
+        return self.__sidebar
+
+    def updateSidebar(self):
+        """
+        Update the sidebar of this player, by setting all of its attributes
+        to those attributes already possessed by the player.  Expects that all
+        of the player's important attributes (most notably currentLevel)
+        actually exist - that is, aren't just None.
+        """
+        
+        exc.check_if_none({"self.name":self.name,
+                           "self.currentLevel.floor":self.currentLevel.floor,
+                           "self.char_level":self.char_level,
+                           "self.cur_HP":self.cur_HP,
+                           "self.max_HP":self.max_HP})
+
+        self.__sidebar = Sidebar(self.name, self.currentLevel.floor,
+                                 self.char_level, self.cur_HP, self.max_HP)
     
     def getName(self, commonNounPreceder = "the"):
         return "you"
@@ -192,19 +227,17 @@ class Player(Dude):
     def levelUp(self):
         """Raise the player's level, thus boosting his HP and stats."""
         HP_boost = action.HP_on_level_gain()
-        self.maxHP += HP_boost
-        self.curHP += HP_boost
+        self.max_HP += HP_boost
+        self.cur_HP += HP_boost
         self.char_level += 1
-
-
 
 class Monster(Dude):
     """
     A dude not controlled by the player.  Typically an antagonist.
     """
-    def __init__(self, name, coords, glyph, AICode, speed, maxHP, tags, attack, defense, char_level, currentLevel = None):
+    def __init__(self, name, coords, glyph, AICode, speed, max_HP, tags, attack, defense, char_level, currentLevel = None):
 
-        Dude.__init__(self, coords, glyph, speed, maxHP, currentLevel, name,
+        Dude.__init__(self, coords, glyph, speed, max_HP, currentLevel, name,
             attack, defense, tags, char_level)
         
         self.AICode = AICode
@@ -277,7 +310,7 @@ class MonsterFactory(list):
                        monsterPrototype.glyph,
                        monsterPrototype.AICode,
                        monsterPrototype.speed,
-                       monsterPrototype.maxHP,
+                       monsterPrototype.max_HP,
                        monsterPrototype.tags[:] if monsterPrototype.tags is not None else None,
                        monsterPrototype.attack,
                        monsterPrototype.defense,
@@ -304,4 +337,36 @@ class MonsterFactory(list):
             else:
                 return list.__getitem__(self, soughtIndex)
     
+class Sidebar(object):
+    """
+    A list of information, on the side of the screen, about the player.
+    """
 
+    def __init__(self, name, floor, char_level, cur_HP, max_HP):
+        """
+        Initialize a Sidebar with the corresponding values.
+
+        name - a string of the player's name.
+        floor - an integer of the floor of the dungeon the player is on.
+        char_level - an integer representing the player's character level.
+        cur_HP - an integer; the player's current HP.
+        max_HP - an integer; the player's maximum HP.
+        """
+
+        self.__array = arrays.empty_str_array(config.STATUS_DIMENSIONS)
+        arrays.print_str_to_end_of_line((61, 0), name, self.__array)
+        arrays.print_str_to_end_of_line((61, 1), "Floor %d" % floor,
+                                        self.__array)
+        arrays.print_str_to_end_of_line((61, 2), "Level %d" % char_level,
+                                        self.__array)
+        arrays.print_str_to_end_of_line((61, 4), 
+                                        "HP: %d(%d)" % (cur_HP, max_HP),
+                                        self.__array)
+        
+        return
+
+    def getArray(self):
+        """
+        Return an array representing the contents of this Sidebar.
+        """
+        return self.__array

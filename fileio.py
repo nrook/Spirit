@@ -4,7 +4,7 @@ Deals with file input, output, and parsing.
 
 from __future__ import with_statement
 
-import display
+# import display
 import dude
 import level
 import symbol
@@ -129,9 +129,9 @@ def getSaveDude(linelist, initline, lastline, monsterFactory):
                                         )
     
     #log an error if current HP is greater than maximum HP
-    log.pasAss(int(attr_dict["curhp"]) > ret_dude.maxHP,
+    log.pasAss(int(attr_dict["curhp"]) > ret_dude.max_HP,
                "curhp > maxhp (%s > %d) of %s at %s, id %s" %
-               (attr_dict["curhp"], ret_dude.maxHP, ret_dude.name,
+               (attr_dict["curhp"], ret_dude.max_HP, ret_dude.name,
                 str(ret_dude.coords), str(ret_dude.ID)))
     
     ret_dude.setHP(int(attr_dict["curhp"]))
@@ -308,12 +308,12 @@ def saveDudes(save, cur_level):
         save.write("(DUDE)\n")
         if cur_dude.isPlayer():
             save.write("type=player\n")
-            save.write("curhp=%d\n" % cur_dude.curHP)
+            save.write("curhp=%d\n" % cur_dude.cur_HP)
             save.write("location=(%d,%d)\n" % (cur_dude.coords[0], cur_dude.coords[1]))
             save.write("name=%s\n" % cur_dude.name)
         else:
             save.write("type=%s\n" % cur_dude.name)
-            save.write("curhp=%d\n" % cur_dude.curHP)
+            save.write("curhp=%d\n" % cur_dude.cur_HP)
             save.write("location=(%d,%d)\n" % (cur_dude.coords[0], cur_dude.coords[1]))
         save.write("(ENDDUDE)\n")
     

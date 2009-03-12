@@ -2,6 +2,7 @@
 Contains various dungeon generation functions.
 """
 
+import arrays
 import rng
 import coordinates
 import level
@@ -101,7 +102,7 @@ def randomDungeon():
     entrance_coords = rng.randomPointInRect(room_nwcoords[entrance_sector], room_secoords[entrance_sector])
     exit_coords = rng.randomPointInRect(room_nwcoords[exit_sector], room_secoords[exit_sector])
     
-    ret_dungeon = level.Dungeon(map_dimensions)
+    ret_dungeon = level.empty_dungeon(map_dimensions)
     
     for coord in ((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)):
         if sector_types[coord] != 0:
@@ -153,6 +154,7 @@ def make_corridor(dungeon, start_coords, end_coords):
         current_coords = [0, 0]
         current_coords[major_dimension] = major_coordinate
         current_coords[minor_dimension] = first_coords[minor_dimension]
+        current_coords = tuple(current_coords)
         if dungeon[current_coords] == ' ':
             dungeon[current_coords] = '#'
     
@@ -165,6 +167,7 @@ def make_corridor(dungeon, start_coords, end_coords):
         current_coords = [0, 0]
         current_coords[major_dimension] = kink_major_coordinate
         current_coords[minor_dimension] = minor_coordinate
+        current_coords = tuple(current_coords)
         if dungeon[current_coords] == ' ':
             dungeon[current_coords] = '#'
     
@@ -172,6 +175,7 @@ def make_corridor(dungeon, start_coords, end_coords):
         current_coords = [0, 0]
         current_coords[major_dimension] = major_coordinate
         current_coords[minor_dimension] = last_coords[minor_dimension]
+        current_coords = tuple(current_coords)
         if dungeon[current_coords] == ' ':
             dungeon[current_coords] = '#'
 
@@ -180,7 +184,7 @@ def populate_level(pop_level, monster_fact):
     Populate a given level with monsters.
     """
 
-    NUMBER_OF_MONSTERS = 18
+    NUMBER_OF_MONSTERS = 0 # 18
     
     level_nwcorner = (0, 0)
     level_secorner = [dim - 1 for dim in pop_level.dimensions]
@@ -202,19 +206,19 @@ def randomLevel(floor, player, monster_fact):
     """
     
     dungeon = randomDungeon()
-    elements = level.Dungeon(dungeon.dimensions)
+    elements = level.empty_elements(dungeon.shape)
     
-    entrance_coords = dungeon.find(">")
+    entrance_coords = arrays.index(">", dungeon)
     # Currently, the > glyph is not used in the game, as downward travel cannot
     # happen.
     # elements[entrance_coords] = ">"
     dungeon[entrance_coords] = '.'
     
-    exit_coords = dungeon.find("<")
+    exit_coords = arrays.index("<", dungeon)
     elements[exit_coords] = "<"
     dungeon[exit_coords] = '.'
     
-    ret_level = level.Level(dungeon.dimensions, floor, None, elements, dungeon)
+    ret_level = level.Level(dungeon.shape, floor, None, elements, dungeon)
     
     if player is not None:
         ret_level.addPlayer(player, entrance_coords)

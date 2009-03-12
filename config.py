@@ -7,9 +7,9 @@ DEFAULT_MAP_Y_WIDTH = 24 #Default height of the entire screen
 
 DEFAULT_DIMENSIONS = (DEFAULT_MAP_X_WIDTH, DEFAULT_MAP_Y_WIDTH)
 
-MAP_DIMENSIONS = (59, 17)
-MESSAGES_DIMENSIONS = (80, 7) #line 1 intentionally left blank
-STATUS_DIMENSIONS = (21, 17)  #column 1 intentionally left blank
+MAP_DIMENSIONS = (60, 17)
+MESSAGES_DIMENSIONS = (80, 7)
+STATUS_DIMENSIONS = (20, 17)  #column 1 intentionally left blank
 
 from kb import kp
 
