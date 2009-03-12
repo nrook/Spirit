@@ -32,8 +32,6 @@ import action
 import log
 
 def main(win = None):
-    # interface.initialize(win)
-    
     mainMonsterFactory = fileio.getMonsterFactory(
                          fileio.getFile("monsters.dat"))
     
@@ -67,8 +65,8 @@ def main(win = None):
         
         for currentDude in curlev.dudeLayer.queue:
             
-            # if currentDude == curlev.player:
-                # curlev.messages.archive()
+            if currentDude == curlev.player:
+                curlev.messages.archive()
             
             dudeAction = currentDude.getAction()
             if dudeAction.getCode() == "QUIT":

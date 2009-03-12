@@ -33,6 +33,7 @@ class MessageBuffer(object):
             self.message_list = []
         else:
             self.message_list = list(iterable_of_messages)
+        self.old = []
 
     def append(self, element):
         """
@@ -58,3 +59,19 @@ class MessageBuffer(object):
             arrays.print_str_to_end_of_line((0, i), lines_to_use[i], ret_array)
 
         return ret_array
+
+    def archive(self):
+        """
+        Empty the current message list, and add it to the end of the archive
+        list, a list containing all past messages.
+        """
+
+        self.old.extend(self.message_list)
+        self.message_list = []
+
+    def getAllMessages(self):
+        """
+        Return all past messages, both current and archived.
+        """
+
+        return self.old + self.message_list
