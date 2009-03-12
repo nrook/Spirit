@@ -3,7 +3,6 @@ level.py includes the Level class, which stores a specific dungeon level.
 """
 
 import config
-# import display
 import arrays
 import coordinates
 import numpy
@@ -299,39 +298,6 @@ class Level(list):
             queue = [presentDude for presentDude in self.dudeLayer]
             del queue[queue.index(self.player)]
             queue.insert(0, self.player)
-    
-    def getPanel(self):
-        raise NotImplementedError()
-        totalDisplay = display.Display([layer.getPanel() 
-                                        for layer in self])
-        totalDisplay.append(self.elements.getPanel())
-        totalDisplay.append(self.dungeon.getPanel())
-        # at this point, you have a display of everything
-        return totalDisplay.getFullPanel()
-    
-    def rectPanel(self, upperLeftCorner, lowerRightCorner):
-        raise NotImplementedError()
-        # Horribly inefficient.  Fix!
-        
-        return self.getPanel().subpanel(upperLeftCorner, lowerRightCorner)
-    
-    def centeredPanel(self, center, dimensions):
-        raise NotImplementedError()
-        """Return a panel centered around "center." """
-        
-        (upperLeftCorner, lowerRightCorner) = coordinates.centeredRect(center, dimensions)
-        return self.rectPanel(upperLeftCorner, lowerRightCorner)
-    
-    def displayPanel(self, dimensions = None, center = None):
-        raise NotImplementedError()
-        realCenter = center if (center is not None) else self.player.coords
-        
-        if dimensions is None:
-            totalPanel = self.getPanel()
-        else:
-            totalPanel = self.centeredPanel(realCenter, dimensions)
-        totalPanel.update()
-    
 
 class Layer(list):
     """
@@ -427,20 +393,6 @@ class Layer(list):
             array[item.coords] = item.glyph
         return array
     
-    def getPanel(self):
-        panel = display.Panel(self.dimensions)
-        for item in self:
-            panel.putc(item.coords, item.glyph)
-        return panel
-    
-    def rectPanel(self, upperLeftCorner, lowerRightCorner):
-        """
-        Returns a panel representation, in the rectangle specified.
-        
-        The current implementation is horribly inefficient, so fix it, dummy!
-        """
-        panel = display
-    
     def append(self, item):
         """Adds to dictionary as well."""
         list.append(self, item)
@@ -485,72 +437,10 @@ class DudeLayer(Layer):
         """
         
         removed.setCurrentLevel(None)
-        #These lines is horribly inefficient; there's got to be a better way.
+        # These lines is horribly inefficient; there's got to be a better way.
         del self[self.index(removed)]
         if removed in self.queue:
             del self.queue[self.queue.index(removed)]
-
-class Dungeon(object):
-    """
-    The Dungeon is the lowest layer of a level, the one with walls, floors, etc.
-    
-    The Dungeon is settable and gettable as a dictionary with coordinate tuples
-    as keys.
-    
-    The Dungeon is terribly inefficient for setting, I think.  If there are
-    speed issues with creating levels, etc., they're probably here.
-    """
-    
-    def __init__(self, dimensions, initList = None):
-        #dict.__init__(self)
-        self.dimensions = dimensions
-        if initList is None:
-            self.panel = display.Panel(dimensions = self.dimensions, fillchar = ' ', transparentchar = ' ')
-        else:
-            self.panel = display.Panel(dimensions = self.dimensions, existingList = initList)
-    
-    def __str__(self):
-        return str(self.panel)
-    
-    def __getitem__(self, key):
-        if key[0] >= self.dimensions[0] or key[1] >= self.dimensions[1]:
-            raise ValueError("Coordinate value out of bounds")
-        return self.panel.getc(key)
-    
-    def __setitem__(self, key, item):
-        if not ((0 <= key[0] < self.dimensions[0]) or (0 <= key[1] < self.dimensions[1])):
-            try:
-                unnecessaryVariable = key[0] + key[1] + 3
-            except TypeError:
-                raise TypeError("Key supplied should be a sequence of ints")
-            else:
-                raise ValueError("Coordinate value out of bounds")
-        self.panel.putc(key, item)
-    
-    def isPassable(self, coords):
-        """
-        This is not actually implemented yet, makes no sense, and, thus, probably never will be.
-        """
-        return True
-    
-    def getPanel(self):
-        return self.panel
-    
-    def rectPanel(self, upperLeftCorner, lowerRightCorner):
-        return self.panel.subpanel(upperLeftCorner, lowerRightCorner)
-    
-    def find(self, glyph):
-        """
-        Returns coordinates for the glyph provided if it is present.
-        
-        Raises a ValueError otherwise.
-        """
-        for y in range(self.dimensions[1]):
-            x = self.panel[y].find(glyph)
-            if x != -1:
-                return (x, y)
-        
-        raise ValueError("Dungeon.find(glyph): glyph not in Dungeon")
 
 def empty_dungeon(dimensions):
     """

@@ -2,12 +2,6 @@
 The main loop; if you want to play, this is where you do it.
 """
 
-"""
-To do:
-# Replace the entire display class with an array-of-1-character-string-based
-  class.
-"""
-
 LOAD_FROM_SAVE = False
 LOAD_FROM_RANDOM_DUNGEON = True
 USE_PROFILER = False
@@ -18,8 +12,6 @@ if USE_PROFILER:
     import cProfile
 
 import tcod_display as display
-# import interface
-# import display
 import level
 import dude
 import config
@@ -53,12 +45,6 @@ def main(win = None):
                                 curlev.getPlayer().coords,
                                 curlev.messages.getArray(),
                                 curlev.getPlayer().getSidebar().getArray())
-    
-#    UIDisplay = display.ScreenKing()
-#    UIDisplay.setCenteredMap(curlev)
-#    UIDisplay.playerStatus.getStatusFromPlayer(curlev.player)
-#    UIDisplay.updateScreenFromPrimaryDisplay()
-#    curlev.UI = UIDisplay
     
     while 1:
         curlev.dudeLayer.generateQueue() #list of actors, in order of action
@@ -103,13 +89,9 @@ def main(win = None):
                                     curlev.getPlayer().coords,
                                     curlev.messages.getArray(),
                                     curlev.getPlayer().getSidebar().getArray())
-        # UIDisplay.setCenteredMap(curlev)
-        # UIDisplay.playerStatus.getStatusFromPlayer(curlev.player)
-        # UIDisplay.updateScreenFromPrimaryDisplay()
 
 def entry():
     main()
-    # wrapper(main)
 
 def prof():
     cProfile.run('entry()', 'profile.pr')

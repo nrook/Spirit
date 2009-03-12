@@ -4,7 +4,6 @@ Deals with file input, output, and parsing.
 
 from __future__ import with_statement
 
-# import display
 import dude
 import level
 import symbol
