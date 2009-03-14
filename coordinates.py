@@ -14,11 +14,8 @@ DIRECTIONS = ((-1, -1),
 import rng
 
 def add(coord1, coord2):
-    """Add two coordinates together."""
-    retList = []
-    for i in range(len(coord1)):
-        retList.append(coord1[i] + coord2[i])
-    return tuple(retList)
+    """Add two 2D coordinates together."""
+    return (coord1[0] + coord2[0], coord1[1] + coord2[1])
 
 def subtract(coord1, coord2):
     """Subtract coord2 from coord1."""
