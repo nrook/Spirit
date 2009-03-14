@@ -2,6 +2,19 @@
 The main loop; if you want to play, this is where you do it.
 """
 
+# Schedule:
+# 1. Redo the actions system.
+# The idea is that each time you want the next monster to do something, you call
+# curlev.next().  This then asks the current monster to do something.  Asking
+# a monster to do something makes it do two things - decide what to do (which
+# involves getting an Action) and doing it (which involves performing that
+# Action).  There is also a dummy object (probably right behind the player, for
+# now) which, when you ask it what to do, it does things that should be done
+# once per turn.
+# 2. Implement special attacks.
+# 3. Implement decks.
+# 4. Fix saving.
+
 LOAD_FROM_SAVE = False
 LOAD_FROM_RANDOM_DUNGEON = True
 USE_PROFILER = False
