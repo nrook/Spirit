@@ -269,7 +269,31 @@ class Monster(Dude):
     """
     A dude not controlled by the player.  Typically an antagonist.
     """
-    def __init__(self, name, coords, glyph, AICode, speed, max_HP, tags, attack, defense, char_level, currentLevel = None):
+    def __init__(self, name, coords, glyph, AICode, speed, max_HP, tags, attack, defense, char_level, spec, specfreq, currentLevel = None):
+        """
+        Create a new monster.
+
+        name - the name of the monster.
+        coords - the coordinates at which the monster currently is.
+            (5, 9), for instance.
+        glyph - a one-character string representing the monster, like "d".
+        AICode - a string representing the Monster's AI - "RANDOM", "CLOSE" etc.
+        speed - just set this to 12 for now.
+        max_HP - the maximum (and starting) HP of the monster.
+        tags - any special qualities the monster has.
+        attack - the monster's attack capability; what percentage of the health
+            of a player of the same level the monster should take away.  An
+            integer.
+        defense - what percentage of the damage dealt by the player the monster
+            should take.  An integer; <100 shows resilience, while >100 shows
+            a faculty for taking much damage.
+        char_level - the dungeon level the monster should normally appear on;
+            also relates to its power.
+        spec - a string representing the monster's special power, activated on
+            a regular attack.
+        specfreq - a string representing how many of the monster's regular
+            melee attacks should be replaced by a special attack.
+        """
 
         Dude.__init__(self, coords, glyph, speed, max_HP, currentLevel, name,
             attack, defense, tags, char_level)

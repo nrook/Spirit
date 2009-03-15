@@ -2,7 +2,7 @@
 name=boxer
 glyph=b
 hp=7
-atk=1
+atk=15
 def=100
 speed=12
 ai=RANDOM
@@ -21,10 +21,22 @@ level=1
 [ENDSEC]
 
 <MONSTER>
+name=smasher
+glyph=s
+hp=10
+atk=20
+def=100
+speed=12
+ai=CLOSE
+level=2
+spec=CRITICAL
+specfreq=30
+
+<MONSTER>
 name=Bob
 glyph=B
 hp=2
-atk=3
+atk=20
 def=100
 speed=12
 ai=CLOSE
