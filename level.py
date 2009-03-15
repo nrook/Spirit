@@ -75,6 +75,8 @@ class Level(list):
         self.__composite_map = arrays.empty_str_array(dimensions)
         self.__height_map = numpy.zeros(dimensions, 'i')
         self.__are_maps_correct = False
+        self.__queue = None
+        self.__tick = LevelTick(self)
     
     def __str__(self):
         return str(self.getArray())
@@ -231,9 +233,11 @@ class Level(list):
         This will delete the dude entirely if no other references to it exist.
         """
 
-        self.__delCharacterFromMap(removedDude.coords, self.__DUDE_HEIGHT)
         self.dudeLayer.remove(removedDude)
-    
+        if removedDude in self.__queue:
+            del self.__queue[self.__queue.index(removedDude)]
+        self.__delCharacterFromMap(removedDude.coords, self.__DUDE_HEIGHT)
+
     def dungeonGlyph(self, coords):
         """
         Gets the particular glyph of a dungeon square.
@@ -283,21 +287,74 @@ class Level(list):
 
         return True
     
-    def getQueue(self):
+    def resetQueue(self):
         """
-        Get the dudes who are moving this turn, in order.
+        Reset the Level's internal queue of dudes (in the order in which they
+        are acting).
         
         The following restrictions are in place here:
         1. The player, if he is moving, always moves first.
         2. The monsters move in a consistent order.
         """
+
+# The first dude in the queue is the player, but there is no real necessity
+# for this - it is a design decision.  The first object in the queue, however,
+# is an instance of the LevelTick class, which is not a dude.  Rather,
+# the LevelTick instance updates things in the Level which should only be
+# updated once per turn.  Currently, this LevelTick instance is a piece of
+# state local to the Level it updates, __tick.
         
-        if self.player == self.dudeLayer[0]:
-            return [presentDude for presentDude in self.dudeLayer]
-        else:
-            queue = [presentDude for presentDude in self.dudeLayer]
-            del queue[queue.index(self.player)]
-            queue.insert(0, self.player)
+        queue = [presentDude for presentDude in self.dudeLayer]
+        del queue[queue.index(self.player)]
+        queue.insert(0, self.player)
+        queue.insert(0, self.__tick)
+        self.__queue = queue
+
+    def next(self):
+        """
+        Make the next dude in the level's queue take an action.  Note
+        that the dude may take any number of actions that don't take up
+        its turn without this method returning.
+        """
+        
+        if (self.__queue is None) or (len(self.__queue) == 0):
+            self.resetQueue()
+        next_actor = self.__queue[0]
+
+# Note that the act() method returns True if the actor has done something to
+# take up its turn, and False otherwise.  Thus, this bit of code keeps asking
+# the next actor to do something, only completing when it finally does.
+        while not next_actor.act(): pass
+
+        del self.__queue[0]
+        return
+
+class LevelTick(object):
+    """
+    An object which updates the status of a Level once per turn.
+
+    Like a Dude, a LevelTick has an act() method; when this method is called,
+    the LevelTick updates the state of its level.
+    """
+
+    def __init__(self, current_level):
+        """
+        Initialize a LevelTick for the level provided.
+
+        current_level - the Level which the LevelTick should update if its act()
+            method is called.
+        """
+
+        self.__current_level = current_level
+        
+        return
+
+    def act(self):
+        """
+        Update the state of the LevelTick's level.  Return True.
+        """
+        
+        return True
 
 class Layer(list):
     """
@@ -414,22 +471,22 @@ class DudeLayer(Layer):
         self.moveQueue = []
         self.player = player
     
-    def generateQueue(self):
-        """
-        Set the dudes who are moving this turn, in order, to self.queue.
-        
-        The following restrictions are in place here:
-        1. The player, if he is moving, always moves first.
-        2. The monsters move in a consistent order.
-        """
-        
-        if self.player == self[0]:
-            self.queue = [presentDude for presentDude in self]
-        else:
-            queue = [presentDude for presentDude in self]
-            del queue[queue.index(self.player)]
-            queue.insert(0, self.player)
-            self.queue = queue
+#    def generateQueue(self):
+#        """
+#        Set the dudes who are moving this turn, in order, to self.queue.
+#        
+#        The following restrictions are in place here:
+#        1. The player, if he is moving, always moves first.
+#        2. The monsters move in a consistent order.
+#        """
+#        
+#        if self.player == self[0]:
+#            self.queue = [presentDude for presentDude in self]
+#        else:
+#            queue = [presentDude for presentDude in self]
+#            del queue[queue.index(self.player)]
+#            queue.insert(0, self.player)
+#            self.queue = queue
     
     def remove(self, removed):
         """
@@ -439,8 +496,8 @@ class DudeLayer(Layer):
         removed.setCurrentLevel(None)
         # These lines is horribly inefficient; there's got to be a better way.
         del self[self.index(removed)]
-        if removed in self.queue:
-            del self.queue[self.queue.index(removed)]
+#        if removed in self.queue:
+#            del self.queue[self.queue.index(removed)]
 
 def empty_dungeon(dimensions):
     """

@@ -7,6 +7,7 @@ All players and monsters should be derived from Dude.
 import sys
 import copy
 
+import tcod_display as display
 import exc
 import rng
 import config
@@ -77,7 +78,6 @@ class Dude(fixedobj.FixedObject):
         return (tickno % speed == 0)
     
     def act(self):
-        #Do not call this!
         raise NotImplementedError("Only implemented by Dude's children.")
     
     def getAction(self):
@@ -129,7 +129,7 @@ class Dude(fixedobj.FixedObject):
     def isPlayer(self):
         """Returns True if this Dude is the player, False otherwise."""
         
-        return False #Player class contains an implementation that returns True
+        return False # Player class contains an implementation that returns True
     
     def setHP(self, newHP):
         """
@@ -188,34 +188,67 @@ class Player(Dude):
     
     def getName(self, commonNounPreceder = "the"):
         return "you"
+
+    def act(self):
+        """
+        Take a turn or do interface things, depending on what the player wants.
+
+        Returns: True if the player has taken a turn; False otherwise.
+        """
+        display.display_main_screen(self.currentLevel.getArray(),
+                        self.currentLevel.getPlayer().coords,
+                        self.currentLevel.messages.getArray(),
+                        self.currentLevel.getPlayer().getSidebar().getArray())
+
+        self.currentLevel.messages.archive()
+
+# First, get an action.  The entire purpose of these lines is to get an action
+# which can then be performed.  If they return instead, they should return
+# False, as no action has been performed.  Note that if the player is trying to
+# do something that basically exists outside of the game world (like quitting
+# or saving the game), there is no reason not to just let him do it within the
+# getAction() function itself.
+        cur_action = self.getAction()
+        if cur_action.getCode() == "DO NOTHING":
+            return False
+
+        if cur_action.getCode() == "UP":
+
+# Going up a level is an action which the Level being left cannot feasibly deal
+# with.  As such, an exception is raised instead, to be caught in the main
+# loop.
+            raise exc.LevelChange()
+
+        if action.is_generic_action(cur_action):
+            return action.do_generic_action(cur_action)
     
     def getAction(self):
         while 1:
             key = kb.getKey()
             if key == kp.QUIT:
-                return action.Quit()
-            elif key == kp.WAIT:
-                return action.Wait()
-            elif key in config.DIRECTION_SWITCH:
-                if coordinates.add(self.coords, config.DIRECTION_SWITCH[key]) \
-                    in self.currentLevel.dudeLayer:
-
-                    return action.Attack(self.currentLevel.dudeLayer[coordinates.add(self.coords, config.DIRECTION_SWITCH[key])])
+                sys.exit(0)
+            elif key == kp.SAVE:
+                decision = display.yes_no(self.currentLevel.messages,
+                    "Do you really want to save and quit the game?")
+                if decision:
+                    fileio.outputSave(self.currentLevel, "save.dat")
+                    sys.exit(0)
                 else:
-                    return action.Move(config.DIRECTION_SWITCH[key])
+                    display.say(self.currentLevel.messages,
+                        "Never mind, then.")
+            elif key == kp.WAIT:
+                return action.Wait(self)
+            elif key in config.DIRECTION_SWITCH:
+                target = coordinates.add(self.coords,
+                                         config.DIRECTION_SWITCH[key])
+                if target in self.currentLevel.dudeLayer:
+                    return action.Attack(self, 
+                                         self.currentLevel.dudeLayer[target])
+                else:
+                    return action.Move(self, config.DIRECTION_SWITCH[key])
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == "<":
         	        return action.Up()
-            elif key == kp.SAVE:
-                if self.currentLevel.UI.prompt(
-                    "Do you really want to save and quit the game?"):
-            
-                    fileio.outputSave(self.currentLevel, "save.dat")
-                    sys.exit()
-                else:
-                    self.currentLevel.UI.messageBuffer.append(
-                        "Never mind, then.")
-                    self.currentLevel.UI.updateScreenFromPrimaryDisplay()
     
     def die(self):
         print "Ack!  You died!"
@@ -243,6 +276,21 @@ class Monster(Dude):
         
         self.AICode = AICode
     
+    def act(self):
+        """
+        Take a turn or do interface things, depending on what the player wants.
+
+        Returns: True if the player has taken a turn; False otherwise.
+        """
+        cur_action = self.getAction()
+        if cur_action.getCode() == "DO NOTHING":
+            return False
+
+        if action.is_generic_action(cur_action):
+            return action.do_generic_action(cur_action)
+
+        assert False, "An unexpected action was returned."
+
     def getAction(self):
         """
         Calculate the action of a monster.  AI code goes here!
@@ -253,7 +301,7 @@ class Monster(Dude):
             while 1:
                 coords = rng.choice(coordinates.DIRECTIONS)
                 if self.canMove(coordinates.add(self.coords, coords)):
-                    return action.Move(coords)
+                    return action.Move(self, coords)
                 
         elif self.AICode == "CLOSE":
             #Close on the player, approaching him every turn.
@@ -261,7 +309,7 @@ class Monster(Dude):
             
             #If next to the player, attack him.
             if coordinates.adjacent(playerLocation, self.coords):
-                return action.Attack(self.currentLevel.player, 
+                return action.Attack(self, self.currentLevel.player, 
                     "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
             
             bestMoves = []
@@ -282,12 +330,12 @@ class Monster(Dude):
                     bestDistance = currentDistance
             
             if bestMoves == []:
-                return action.Wait()
+                return action.Wait(self)
             else:
-                return action.Move(rng.choice(bestMoves))
+                return action.Move(self, rng.choice(bestMoves))
             
         else:
-            return action.Wait()
+            return action.Wait(self)
     
     def die(self):
        self.currentLevel.removeDude(self)

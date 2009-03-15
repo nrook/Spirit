@@ -33,6 +33,7 @@ import symbol
 import fileio
 import mapgen
 import action
+import exc
 
 import log
 
@@ -58,6 +59,18 @@ def main(win = None):
                                 curlev.getPlayer().coords,
                                 curlev.messages.getArray(),
                                 curlev.getPlayer().getSidebar().getArray())
+
+    while 1:
+        try:
+            curlev.next()
+        except exc.LevelChange:
+            saved_player = curlev.player
+            new_floor = curlev.floor + 1
+            curlev = mapgen.randomLevel(new_floor, player, mainMonsterFactory)
+            curlev.player.levelUp()
+            curlev.messages.append("Welcome to the next floor!")
+
+    raise NotImplementedError("You're not supposed to get here!")
     
     while 1:
         curlev.dudeLayer.generateQueue() #list of actors, in order of action

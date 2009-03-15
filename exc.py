@@ -7,6 +7,9 @@ it wants a label to apply to the parameter to be tested, so that the
 exception thrown can identify said parameter.
 """
 
+class LevelChange(Exception):
+    """Raised when the player moves up a level."""
+
 def check_in_array(coord, shape, name = "The coordinates"):
     """
     Raise a ValueError if coord lies outside the array whose shape is shape.
