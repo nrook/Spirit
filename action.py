@@ -10,6 +10,7 @@ attack or the HP gained on gaining a level.
 """
 Codes:
 
+Quit (unused): QUIT
 Move: MOVE
 Stand still: WAIT
 Standard attack: STDATK
@@ -20,6 +21,15 @@ import coordinates
 import rng
 
 class Action(object):
+    """
+    An object representing an action a dude could take.
+    Also includes a do() method, which actually does said action.
+
+    Fields:
+    strcode - a code representing the Action's type.  Use getCode() instead.
+    message - a string representing a message to be displayed when the Action
+        is taken.
+    """
     
     def __init__(self, strcode, message = ""):
         """
@@ -28,9 +38,6 @@ class Action(object):
         As no generic Actions should exist, it should only be called by
         subclasses of Action.
         """
-        
-        #instance variables: strcode, message
-        #if the Action displays no message, then message = ""
         
         self.strcode = strcode
         self.message = message
@@ -76,10 +83,6 @@ class Move(Action):
             return True
         else:
             return False
-#            raise ValueError("This dude, %s, at %s, cannot move to %s." %
-#                (str(self.source),
-#                 str(self.source.coords),
-#                 str(destination_coords)))
 
 class Up(Action):
     """

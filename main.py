@@ -70,52 +70,6 @@ def main(win = None):
             curlev.player.levelUp()
             curlev.messages.append("Welcome to the next floor!")
 
-    raise NotImplementedError("You're not supposed to get here!")
-    
-    while 1:
-        curlev.dudeLayer.generateQueue() #list of actors, in order of action
-        
-        for currentDude in curlev.dudeLayer.queue:
-            
-            if currentDude == curlev.player:
-                curlev.messages.archive()
-            
-            dudeAction = currentDude.getAction()
-            if dudeAction.getCode() == "QUIT":
-                return
-            elif dudeAction.getCode() == "MOVE":
-                moveCoords = coordinates.addCoords(
-                    dudeAction.getCoords(), currentDude.getCoords())
-
-                curlev.moveDude(currentDude, moveCoords)
-            elif dudeAction.getCode() == "UP":
-                # Time to move up a level.
-                saved_player = curlev.player
-                new_floor = curlev.floor + 1
-                curlev = mapgen.randomLevel(new_floor, player, mainMonsterFactory)
-                curlev.player.levelUp()
-                curlev.messages.append("Welcome to the next floor!")
-                # Restart the dude list.
-                break
-            elif dudeAction.getCode() == "STDATK":
-                damage = action.damage(currentDude.attack, dudeAction.target.defense, currentDude.char_level, dudeAction.target.char_level)
-                curlev.messages.append(dudeAction.message % {
-                                "SOURCE_NAME": currentDude.getName(),
-                                "DAMAGE": damage,
-                                "TARGET_NAME": dudeAction.target.getName(),
-                                })
-                dudeAction.target.cur_HP -= damage
-                dudeAction.target.checkDeath()
-            elif dudeAction.getCode() == "WAIT":
-                pass
-            else:
-                pass
-        
-        display.display_main_screen(curlev.getArray(),
-                                    curlev.getPlayer().coords,
-                                    curlev.messages.getArray(),
-                                    curlev.getPlayer().getSidebar().getArray())
-
 def entry():
     main()
 
