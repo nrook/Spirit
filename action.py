@@ -20,6 +20,8 @@ Go upstairs: UP
 import coordinates
 import rng
 
+CRIT_MULTIPLIER = 2
+
 class Action(object):
     """
     An object representing an action a dude could take.
@@ -144,13 +146,17 @@ class Attack(Action):
         """
         damage_dealt = damage(self.source.attack, self.target.defense,
                        self.source.char_level, self.target.char_level)
-        self.source.currentLevel.messages.append(self.message % {
-            "SOURCE_NAME": self.source.getName(),
-            "DAMAGE": damage_dealt,
-            "TARGET_NAME": self.target.getName(),
-            })
-        self.target.cur_HP -= damage_dealt
-        self.target.checkDeath()
+        if (not self.source.isPlayer()) and \
+            rng.percentChance(self.source.specfreq):
+            do_special_melee(self.source.spec, self.source, self.target)
+        else:
+            self.source.currentLevel.messages.append(self.message % {
+                "SOURCE_NAME": self.source.getName(),
+                "DAMAGE": damage_dealt,
+                "TARGET_NAME": self.target.getName(),
+                })
+            self.target.cur_HP -= damage_dealt
+            self.target.checkDeath()
 
         return True
 
@@ -185,6 +191,30 @@ def do_generic_action(act):
         raise ValueError("The act, %s, is not a generic action." % str(act))
 
     return act.do()
+
+def do_special_melee(attack_type, source, target):
+    """
+    Have a Dude perform a special melee attack.
+
+    attack_type - a string representing the type of special attack.
+    source - the Dude attacking.
+    target - the Dude being attacked.
+    """
+
+    if attack_type == "CRITICAL":
+        damage_dealt = CRIT_MULTIPLIER * \
+                       damage(source.attack, target.defense,
+                              source.char_level, target.char_level)
+        source.currentLevel.messages.append(
+        "%(SOURCE_NAME)s runs %(TARGET_NAME)s all the way through! (%(DAMAGE)d)"
+            % {"SOURCE_NAME": source.getName(),
+               "DAMAGE": damage_dealt,
+               "TARGET_NAME": target.getName()})
+        target.cur_HP -= damage_dealt
+        target.checkDeath()
+    else:
+        raise exc.InvalidDataWarning("%s special ability used by %s on %s."
+                                     % (attack_type, str(source), str(target)))
 
 def expected_HP(dude_level):
         return 6 * (dude_level + 2)

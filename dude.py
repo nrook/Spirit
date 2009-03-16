@@ -299,6 +299,8 @@ class Monster(Dude):
             attack, defense, tags, char_level)
         
         self.AICode = AICode
+        self.spec = spec
+        self.specfreq = specfreq
     
     def act(self):
         """
@@ -458,5 +460,7 @@ def duplicate(prototype, coords = None, currentLevel = None):
                        prototype.attack,
                        prototype.defense,
                        prototype.char_level,
+                       prototype.spec,
+                       prototype.specfreq,
                        currentLevel,
                       )

@@ -7,6 +7,8 @@ def=100
 speed=12
 ai=RANDOM
 level=1
+spec=NONE
+specfreq=0
 [ENDSEC]
 
 <MONSTER>
@@ -18,19 +20,22 @@ def=100
 speed=12
 ai=CLOSE
 level=1
+spec=NONE
+specfreq=0
 [ENDSEC]
 
 <MONSTER>
 name=smasher
 glyph=s
 hp=10
-atk=20
+atk=10
 def=100
 speed=12
 ai=CLOSE
 level=2
 spec=CRITICAL
 specfreq=30
+[ENDSEC]
 
 <MONSTER>
 name=Bob
@@ -41,6 +46,8 @@ def=100
 speed=12
 ai=CLOSE
 level=2
+spec=NONE
+specfreq=0
 [TAG]
 proper_noun
 [END]

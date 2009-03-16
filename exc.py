@@ -10,6 +10,16 @@ exception thrown can identify said parameter.
 class LevelChange(Exception):
     """Raised when the player moves up a level."""
 
+class InvalidDataWarning(RuntimeWarning):
+    """
+    Raised when a dubious situation arises from outside data.
+
+    Note that if the situation is bad, a plain old exception should be thrown,
+    not this warning.  This warning should only be thrown if data is read that
+    is comprehensible, but a bit odd, like a nonzero chance of activating a
+    "NONE" special ability.
+    """
+
 def check_in_array(coord, shape, name = "The coordinates"):
     """
     Raise a ValueError if coord lies outside the array whose shape is shape.

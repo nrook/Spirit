@@ -249,6 +249,8 @@ def getMonster(linelist, initline = 0):
                         int(attrDict["atk"]),
                         int(attrDict["def"]),
                         int(attrDict["level"]),
+                        attrDict["spec"],
+                        int(attrDict["specfreq"]),
                         None
                         )
 

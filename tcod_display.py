@@ -7,6 +7,8 @@ import config
 
 import libtcodpy as tcod
 
+level_cache = None
+
 def init():
     tcod.console_init_root(80, 24, "Because It's There", False)
 
@@ -34,12 +36,32 @@ def display_array(array):
 
     return
 
+def refresh_screen(current_level = None):
+    """
+    Refresh the console with the Level object provided.
+    If the Level is None, use the previous Level used instead.  If there is no
+    previous Level, raise a LookupError.
+    """
+    global level_cache
+
+    if current_level is None:
+        if level_cache is None:
+            raise LookupError("refresh_screen() has not yet been called!")
+        else:
+            current_level = level_cache
+
+    level_cache = current_level
+
+    display_main_screen(current_level.getArray(),
+                        current_level.getPlayer().coords,
+                        current_level.messages.getArray(),
+                        current_level.getPlayer().getSidebar().getArray())
+
 def display_main_screen(level_array, level_center, 
                         message_array, sidebar_array):
     """
     Refresh the console with the three arrays provided.
     """
-
     assert message_array.shape == config.MESSAGES_DIMENSIONS
     assert sidebar_array.shape == config.STATUS_DIMENSIONS
 
