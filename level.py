@@ -354,6 +354,7 @@ class LevelTick(object):
         Update the state of the LevelTick's level.  Return True.
         """
         
+        self.__current_level.player.deck.draw()
         return True
 
 class Layer(list):

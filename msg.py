@@ -4,6 +4,8 @@ Contains the MessageBuffer class.
 
 import arrays
 
+import tcod_display as display
+
 class MessageBuffer(object):
     """
     A container for the messages displayed to the player.
@@ -75,3 +77,13 @@ class MessageBuffer(object):
         """
 
         return self.old + self.message_list
+
+    def say(self, thing_to_say):
+        """
+        Display a new string and refresh the display.
+
+        thing_to_say - the string to be displayed.
+        """
+
+        self.append(thing_to_say)
+        display.refresh_screen()

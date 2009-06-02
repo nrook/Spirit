@@ -30,7 +30,15 @@ class kp:
     YES,
     NO,
     UP,
-    ) = range(15)
+    CARD_1,
+    CARD_2,
+    CARD_3,
+    CARD_4,
+    CARD_5,
+    CARD_6,
+    CARD_7,
+    CANCEL,
+    ) = range(23)
 
 mainScreenTranslationTable = {
 ord('k') : kp.N,
@@ -45,6 +53,13 @@ ord('q') : kp.QUIT,
 ord('.') : kp.WAIT,
 ord('S') : kp.SAVE,
 ord('<') : kp.UP,
+ord('1') : kp.CARD_1,
+ord('2') : kp.CARD_2,
+ord('3') : kp.CARD_3,
+ord('4') : kp.CARD_4,
+ord('5') : kp.CARD_5,
+ord('6') : kp.CARD_6,
+ord('7') : kp.CARD_7,
 }
 
 booleanQuestionTranslationTable = {
@@ -54,11 +69,44 @@ ord('n') : kp.NO,
 ord('N') : kp.NO,
 }
 
+directionTranslationTable = {
+ord('k') : kp.N,
+ord('u') : kp.NE,
+ord('l') : kp.E,
+ord('n') : kp.SE,
+ord('j') : kp.S,
+ord('b') : kp.SW,
+ord('h') : kp.W,
+ord('y') : kp.NW,
+}
+
 #Translation table name translation table.
 tTables = {
 "main" : mainScreenTranslationTable,
 "boolean" : booleanQuestionTranslationTable,
+"direction" : directionTranslationTable
 }
+
+# "Card switch"--maps card invocation keys to numbers, from 0 to 6.
+card_values = {
+    kp.CARD_1 : 0,
+    kp.CARD_2 : 1,
+    kp.CARD_3 : 2,
+    kp.CARD_4 : 3,
+    kp.CARD_5 : 4,
+    kp.CARD_6 : 5,
+    kp.CARD_7 : 6
+}
+
+DIRECTION_SWITCH =  {
+                    kp.NW: (-1, -1),
+                    kp.W: (-1, 0),
+                    kp.SW: (-1, 1),
+                    kp.S: (0, 1),
+                    kp.SE: (1, 1),
+                    kp.E: (1, 0),
+                    kp.NE: (1, -1),
+                    kp.N: (0, -1)}
 
 import tcod_display as display
 
@@ -71,3 +119,64 @@ def getKey(mode = "main"):
         return usedTranslationTable[key]
     else:
         return kp.NOTKEY
+
+def question(messages, prompt, mode = "main"):
+    """
+    Ask a question by adding a message to the messageBuffer and updating it,
+    then recording the keypress made in response.
+
+    messages - the MessageBuffer to be used.
+    prompt - the message to be displayed to the player to prompt a response.
+    mode - the key table to be used to interpret the keypress made.
+    """
+    
+    messages.say(prompt)
+
+    response_key = getKey(mode)
+    return response_key
+
+def boolean_question(messages, prompt):
+    """
+    Ask a yes or no question, requesting an answer y, Y, n, or N.
+    
+    messages - the MessageBuffer upon which the question is asked.
+    prompt - the message to be displayed to the player to prompt a response.
+
+    Return true if the player answers "yes," and false if the player answers
+    "no."
+    """
+
+    response_key = question(messages, prompt, "boolean")
+
+# If an invalid response is given, keep asking until you get a valid one.
+    while response_key == kp.NOTKEY:
+        response_key = question(messages,
+            "Please answer yes or no (y/n).",
+            "boolean")
+    
+    assert response_key in [kp.YES, kp.NO]
+    if response_key == kp.YES:
+        return True
+    else:
+        return False
+
+def direction_question(messages, prompt):
+    """
+    Ask a question whose response should be a valid direction.
+    
+    messages - the MessageBuffer upon which the question is asked.
+    prompt - the message to be displayed to the player to prompt a response.
+
+    Return a tuple of coordinates representing the direction the player
+    chose.
+    """
+
+    response_key = question(messages, prompt, "direction")
+
+# If an invalid response is given, keep asking until you get a valid one.
+    while response_key == kp.NOTKEY:
+        response_key = question(messages,
+            "Please respond with a valid direction.",
+            "direction")
+    
+    return DIRECTION_SWITCH[response_key]

@@ -17,6 +17,7 @@ import action
 import coordinates
 import arrays
 import fileio
+import cards
 import kb
 kp = kb.kp
 
@@ -45,8 +46,6 @@ An ordinary dude has speed 12.
 
 I will probably ignore this whole comment.
 """
-
-
 
 class Dude(fixedobj.FixedObject):
     """
@@ -146,10 +145,12 @@ class Player(Dude):
     
     There should only be one player, obviously.
     """
-    
-    def __init__(self, name, coords, speed = 12, currentLevel = None, char_level = 1, max_HP = None):
-        if max_HP == None:
-        	max_HP = 12 + 6 * char_level
+
+    def __init__(self, name, coords, speed = 12, currentLevel = None, char_level = 1, deck = None):
+        if deck is None:
+            deck = cards.Deck()
+
+        max_HP = 12 + 6 * char_level
 
         Dude.__init__(self, coords, symbol.Glyph('@'), speed, max_HP, currentLevel, name, 40, 100, ["proper_noun"], char_level)
 
@@ -160,6 +161,8 @@ class Player(Dude):
 # If there is not yet a currentLevel to ask which floor you're on yet, put off
 # generating the Sidebar until it is first needed.
             self.__sidebar = None
+
+        self.deck = deck
 
     def getSidebar(self):
         """
@@ -181,10 +184,12 @@ class Player(Dude):
                            "self.currentLevel.floor":self.currentLevel.floor,
                            "self.char_level":self.char_level,
                            "self.cur_HP":self.cur_HP,
-                           "self.max_HP":self.max_HP})
+                           "self.max_HP":self.max_HP,
+                           "self.deck":self.deck})
 
         self.__sidebar = Sidebar(self.name, self.currentLevel.floor,
-                                 self.char_level, self.cur_HP, self.max_HP)
+                                 self.char_level, self.cur_HP, self.max_HP,
+                                 self.deck)
     
     def getName(self, commonNounPreceder = "the"):
         return "you"
@@ -195,11 +200,10 @@ class Player(Dude):
 
         Returns: True if the player has taken a turn; False otherwise.
         """
-        display.display_main_screen(self.currentLevel.getArray(),
-                        self.currentLevel.getPlayer().coords,
-                        self.currentLevel.messages.getArray(),
-                        self.currentLevel.getPlayer().getSidebar().getArray())
 
+        display.refresh_screen(self.currentLevel)
+
+# Clear the message buffer.
         self.currentLevel.messages.archive()
 
 # First, get an action.  The entire purpose of these lines is to get an action
@@ -218,9 +222,9 @@ class Player(Dude):
 # with.  As such, an exception is raised instead, to be caught in the main
 # loop.
             raise exc.LevelChange()
-
-        if action.is_generic_action(cur_action):
-            return action.do_generic_action(cur_action)
+        
+# This used to be a call to do_generic_action.  I'm not sure why.
+        return cur_action.do()
     
     def getAction(self):
         while 1:
@@ -228,14 +232,14 @@ class Player(Dude):
             if key == kp.QUIT:
                 sys.exit(0)
             elif key == kp.SAVE:
-                decision = display.yes_no(self.currentLevel.messages,
+                decision = kb.boolean_question(self.currentLevel.messages,
                     "Do you really want to save and quit the game?")
                 if decision:
                     fileio.outputSave(self.currentLevel, "save.dat")
                     sys.exit(0)
                 else:
-                    display.say(self.currentLevel.messages,
-                        "Never mind, then.")
+                    self.currentLevel.messages.say("Never mind, then.")
+                    return action.DoNothing()
             elif key == kp.WAIT:
                 return action.Wait(self)
             elif key in config.DIRECTION_SWITCH:
@@ -246,9 +250,35 @@ class Player(Dude):
                                          self.currentLevel.dudeLayer[target])
                 else:
                     return action.Move(self, config.DIRECTION_SWITCH[key])
+            elif key in kb.card_values:
+                card_id = kb.card_values[key]
+                
+                if card_id >= len(self.deck.hand):
+                    return action.DoNothing()
+                card_to_use = self.deck.hand[card_id]
+
+                direction_of_target_square = kb.direction_question(
+                    self.currentLevel.messages,
+                    "In which direction would you like to use the %s card?" % card_to_use.ability_name)
+                target_square = coordinates.add(self.coords, direction_of_target_square)
+                if target_square in self.currentLevel.dudeLayer:
+                    del self.deck.hand[card_id]
+                    return action.SpecialMelee(self,
+                        self.currentLevel.dudeLayer[target_square],
+                        card_to_use.action_code)
+                else:
+                    self.currentLevel.messages.say("You whiff completely!")
+                    del self.deck.hand[card_id]
+                    return action.Wait(self)
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == "<":
         	        return action.Up()
+
+    def obtainCard(self, mon):
+        """
+        Obtain the card related to mon, and shuffle it into the deck library.
+        """
+        self.deck.randomInsert(cards.mon_card(mon))
     
     def die(self):
         print "Ack!  You died!"
@@ -364,7 +394,9 @@ class Monster(Dude):
             return action.Wait(self)
     
     def die(self):
-       self.currentLevel.removeDude(self)
+        if self.spec != "NONE":
+            self.currentLevel.player.obtainCard(self)
+        self.currentLevel.removeDude(self)
 
 class MonsterFactory(list):
     """
@@ -414,7 +446,7 @@ class Sidebar(object):
     A list of information, on the side of the screen, about the player.
     """
 
-    def __init__(self, name, floor, char_level, cur_HP, max_HP):
+    def __init__(self, name, floor, char_level, cur_HP, max_HP, deck):
         """
         Initialize a Sidebar with the corresponding values.
 
@@ -434,6 +466,11 @@ class Sidebar(object):
         arrays.print_str_to_end_of_line((1, 4), 
                                         "HP: %d(%d)" % (cur_HP, max_HP),
                                         self.__array)
+        arrays.print_str_to_end_of_line((1, 6),
+            "Deck(%d):" % len(deck.library), self.__array)
+        for i in range(len(deck.hand)):
+            arrays.print_str_to_end_of_line((1, 7 + i),
+                "(%d) %s" % (i, deck.hand[i].monster_name), self.__array)
         
         return
 

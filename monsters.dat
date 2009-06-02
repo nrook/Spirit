@@ -12,20 +12,7 @@ specfreq=0
 [ENDSEC]
 
 <MONSTER>
-name=nurse
-glyph=d
-hp=6
-atk=10
-def=100
-speed=12
-ai=CLOSE
-level=1
-spec=NONE
-specfreq=0
-[ENDSEC]
-
-<MONSTER>
-name=smasher
+name=lancer
 glyph=s
 hp=10
 atk=10

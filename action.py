@@ -14,7 +14,18 @@ Quit (unused): QUIT
 Move: MOVE
 Stand still: WAIT
 Standard attack: STDATK
+Special melee attack: SPMELEE
 Go upstairs: UP
+"""
+
+"""
+Spec codes are codes for special attacks or actions used by the player or a
+monster.  Most monsters have a spec code representing the single type of
+special attack they can use.
+
+Spec codes:
+Melee attacks:
+CRITICAL: Perform a critical hit, with a CRIT_MULTIPLIER damage multiplier.
 """
 
 import coordinates
@@ -46,6 +57,17 @@ class Action(object):
     
     def getCode(self):
         return self.strcode
+
+class DoNothing(Action):
+    """
+    An object representing a dude not taking an action, not even using a turn.
+
+    Fields:
+    strcode - "DO NOTHING".
+    """
+
+    def __init__(self):
+        Action.__init__(self, "DO NOTHING")
 
 class Move(Action):
     """
@@ -158,6 +180,28 @@ class Attack(Action):
             self.target.cur_HP -= damage_dealt
             self.target.checkDeath()
 
+        return True
+
+class SpecialMelee(Action):
+    """
+    An action that represents attacking an adjacent dude with a special
+    ability.
+    
+    Instance fields:
+    source - the dude attacking.
+    target - the dude being attacked.
+    code - a special code representing the type of special attack.
+    """
+
+    def __init__(self, source, target, code, message = "%(SOURCE_NAME)s uses a special attack on %(TARGET_NAME)s! (%(DAMAGE)d)"):
+        Action.__init__(self, "SPMELEE", message)
+        self.source = source
+        self.target = target
+        self.code = code
+
+    def do(self):
+        do_special_melee(self.code, self.source, self.target)
+        
         return True
 
 def is_generic_action(act):

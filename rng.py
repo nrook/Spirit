@@ -25,6 +25,16 @@ def choice(sequence):
     
     return random.choice(sequence)
 
+def random_insert(list_, element):
+    """
+    Insert element into a random place in list_.
+
+    list_ - the list (or other item that implements the list insert).
+    element - the thing to inset into the list.
+    """
+
+    list_.insert(randInt(0, len(list_)), element)
+
 def percentChance(percent_integer):
     """
     Has a percent_integer percent chance of returning True; otherwise, False.
