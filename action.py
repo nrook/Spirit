@@ -201,7 +201,6 @@ class SpecialMelee(Action):
 
     def do(self):
         do_special_melee(self.code, self.source, self.target)
-        
         return True
 
 def is_generic_action(act):

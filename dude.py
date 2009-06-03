@@ -339,11 +339,8 @@ class Monster(Dude):
         Returns: True if the player has taken a turn; False otherwise.
         """
         cur_action = self.getAction()
-        if cur_action.getCode() == "DO NOTHING":
-            return False
 
-        if action.is_generic_action(cur_action):
-            return action.do_generic_action(cur_action)
+        return cur_action.do()
 
         assert False, "An unexpected action was returned."
 
@@ -365,8 +362,13 @@ class Monster(Dude):
             
             #If next to the player, attack him.
             if coordinates.adjacent(playerLocation, self.coords):
-                return action.Attack(self, self.currentLevel.player, 
-                    "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
+                if rng.percentChance(self.specfreq):
+                    return action.SpecialMelee(self,
+                        self.currentLevel.player,
+                        self.spec)
+                else:
+                    return action.Attack(self, self.currentLevel.player, 
+                        "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
             
             bestMoves = []
             bestDistance = coordinates.distance(playerLocation, self.coords)            
