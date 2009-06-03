@@ -45,6 +45,15 @@ def adjacent(coord1, coord2):
     
     return (distance(coord1, coord2) < 1.5)
 
+def adjacent_coords(coord):
+    """
+    Return a tuple of the eight coordinates adjacent to the coordinate given.
+    
+    Note that adjacent_coords may return coordinates like (-1, 0).
+    """
+
+    return [(coord[0] + i[0], coord[1] + i[1]) for i in DIRECTIONS]
+
 def distance(coord1, coord2):
     """Return the distance between two points, as a float."""
     
@@ -82,6 +91,14 @@ def centeredRect(center, dimensions):
         lowerRightY = center[1] + ((dimensions[1] - 1) / 2)
     
     return ((upperLeftX, upperLeftY), (lowerRightX, lowerRightY))
+
+def legal(coord, map_size):
+    """
+    Return 'true' if coord refers to a legal set of coordinates in an array
+    of coordinates map_size.
+    """
+
+    return (coord[0] >= 0) and (coord[1] >= 0) and (coord[0] < map_size[0]) and (coord[1] < map_size[1])
 
 def stringToCoords(coordString):
     """

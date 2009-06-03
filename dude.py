@@ -18,6 +18,7 @@ import coordinates
 import arrays
 import fileio
 import cards
+import fov
 import kb
 kp = kb.kp
 
@@ -69,6 +70,7 @@ class Dude(fixedobj.FixedObject):
         self.defense = defense
         self.char_level = char_level
         self.tags = tags if tags is not None else []
+        self.fov = fov.fov()
     
     def __str__(self):
         return "%s\nID %s\nSpeed %s\nCoordinates: %s\nTags: %s" % (self.glyph, self.ID, self.speed, self.coords, self.tags)
@@ -139,6 +141,14 @@ class Dude(fixedobj.FixedObject):
         else:
             self.cur_HP = newHP
 
+    def resetFOV(self):
+        """
+        Reset the dude's field of view, determined by its current level and
+        its coordinates.
+        """
+
+        self.fov.recalculate(self.currentLevel, self.coords)
+
 class Player(Dude):
     """
     The player, or at least his representation in the game.
@@ -200,6 +210,8 @@ class Player(Dude):
 
         Returns: True if the player has taken a turn; False otherwise.
         """
+
+        self.resetFOV()
 
         display.refresh_screen(self.currentLevel)
 
@@ -338,6 +350,7 @@ class Monster(Dude):
 
         Returns: True if the player has taken a turn; False otherwise.
         """
+        self.resetFOV()
         cur_action = self.getAction()
 
         return cur_action.do()
@@ -360,6 +373,10 @@ class Monster(Dude):
             #Close on the player, approaching him every turn.
             playerLocation = self.currentLevel.getPlayer().coords
             
+            # If you can't see the player, simply wait.
+            if self.currentLevel.getPlayer() not in self.fov.dudes:
+                return action.Wait(self)
+
             #If next to the player, attack him.
             if coordinates.adjacent(playerLocation, self.coords):
                 if rng.percentChance(self.specfreq):

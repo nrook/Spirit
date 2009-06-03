@@ -27,6 +27,10 @@ import symbol
 
 TRANSPARENT_GLYPH = symbol.Glyph(' ')
 
+# Those symbols which represent the interior of a room, spaces which can be
+# easily seen through.
+OPEN_GLYPHS = set(['.'])
+
 import objid
 
 class MapVars:
