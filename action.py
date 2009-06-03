@@ -168,17 +168,14 @@ class Attack(Action):
         """
         damage_dealt = damage(self.source.attack, self.target.defense,
                        self.source.char_level, self.target.char_level)
-        if (not self.source.isPlayer()) and \
-            rng.percentChance(self.source.specfreq):
-            do_special_melee(self.source.spec, self.source, self.target)
-        else:
-            self.source.currentLevel.messages.append(self.message % {
-                "SOURCE_NAME": self.source.getName(),
-                "DAMAGE": damage_dealt,
-                "TARGET_NAME": self.target.getName(),
-                })
-            self.target.cur_HP -= damage_dealt
-            self.target.checkDeath()
+
+        self.source.currentLevel.messages.append(self.message % {
+            "SOURCE_NAME": self.source.getName(),
+            "DAMAGE": damage_dealt,
+            "TARGET_NAME": self.target.getName(),
+            })
+        self.target.cur_HP -= damage_dealt
+        self.target.checkDeath()
 
         return True
 

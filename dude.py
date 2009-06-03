@@ -472,7 +472,7 @@ class Sidebar(object):
             "Deck(%d):" % len(deck.library), self.__array)
         for i in range(len(deck.hand)):
             arrays.print_str_to_end_of_line((1, 7 + i),
-                "(%d) %s" % (i, deck.hand[i].monster_name), self.__array)
+                "(%d) %s" % (i+1, deck.hand[i].monster_name), self.__array)
         
         return
 
