@@ -23,12 +23,6 @@ def wait_for_key():
     key = tcod.console_wait_for_keypress(False)
     return key.c
 
-def yes_no(messages, question):
-    raise NotImplementedError()
-
-def get_direction(messages, question):
-    raise NotImplementedError()
-
 def display_array(array):
     """
     Copy the array of 1-character strings supplied to the screen, and flush.
