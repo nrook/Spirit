@@ -363,54 +363,74 @@ class Monster(Dude):
         """
         
         if self.AICode == "RANDOM":
-            #Make a completely random move.
-            while 1:
-                coords = rng.choice(coordinates.DIRECTIONS)
-                if self.canMove(coordinates.add(self.coords, coords)):
-                    return action.Move(self, coords)
+            return self.randomWalk()
                 
         elif self.AICode == "CLOSE":
-            #Close on the player, approaching him every turn.
-            playerLocation = self.currentLevel.getPlayer().coords
-            
-            # If you can't see the player, simply wait.
-            if self.currentLevel.getPlayer() not in self.fov.dudes:
-                return action.Wait(self)
-
-            #If next to the player, attack him.
-            if coordinates.adjacent(playerLocation, self.coords):
-                if rng.percentChance(self.specfreq):
-                    return action.SpecialMelee(self,
-                        self.currentLevel.player,
-                        self.spec)
-                else:
-                    return action.Attack(self, self.currentLevel.player, 
-                        "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
-            
-            bestMoves = []
-            bestDistance = coordinates.distance(playerLocation, self.coords)            
-            for possibleMove in coordinates.getDirections():
-                destination = coordinates.add(self.coords, possibleMove)
-                currentDistance = coordinates.distance(
-                                  playerLocation,
-                                  destination)
-                if currentDistance == bestDistance and \
-                   self.canMove(destination):
-                    
-                    bestMoves.append(possibleMove)
-                elif currentDistance < bestDistance and \
-                   self.canMove(destination):
-                    
-                    bestMoves = [possibleMove]
-                    bestDistance = currentDistance
-            
-            if bestMoves == []:
-                return action.Wait(self)
-            else:
-                return action.Move(self, rng.choice(bestMoves))
+            return self.closeToPlayer()
             
         else:
             return action.Wait(self)
+
+    def randomWalk(self):
+        """
+        Return an action representing walking in a random direction.
+        """
+        while 1:
+            coords = rng.choice(coordinates.DIRECTIONS)
+            destination = coordinates.add(self.coords, coords)
+            if destination == self.currentLevel.getPlayer().coords:
+                action.Attack(self, self.currentLevel.player, 
+                        "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
+            elif self.canMove(destination):
+                return action.Move(self, coords)
+            else:
+                pass
+    
+    def closeToPlayer(self):
+        """
+        If the player is in sight, close in on him, and attack him if possible.
+        
+        If the player is not in sight, move randomly.
+        This function returns an Action representing doing this.
+        """
+        playerLocation = self.currentLevel.getPlayer().coords
+
+# If you can't see the player, move randomly.
+        if self.currentLevel.getPlayer() not in self.fov.dudes:
+            return self.randomWalk()
+
+# If next to the player, attack him.
+        if coordinates.adjacent(playerLocation, self.coords):
+            if rng.percentChance(self.specfreq):
+                return action.SpecialMelee(self,
+                        self.currentLevel.player,
+                        self.spec)
+            else:
+                return action.Attack(self, self.currentLevel.player, 
+                    "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
+            
+        bestMoves = []
+        bestDistance = coordinates.distance(playerLocation, self.coords)            
+        for possibleMove in coordinates.getDirections():
+            destination = coordinates.add(self.coords, possibleMove)
+            currentDistance = coordinates.distance(
+                              playerLocation,
+                              destination)
+            if currentDistance == bestDistance and \
+               self.canMove(destination):
+                   
+                bestMoves.append(possibleMove)
+            elif currentDistance < bestDistance and \
+               self.canMove(destination):
+                
+                bestMoves = [possibleMove]
+                bestDistance = currentDistance
+            
+        if bestMoves == []:
+            return randomWalk()
+        else:
+            return action.Move(self, rng.choice(bestMoves))
+ 
     
     def die(self):
         if self.spec != "NONE":
