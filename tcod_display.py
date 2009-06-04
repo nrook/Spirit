@@ -23,6 +23,20 @@ def wait_for_key():
     key = tcod.console_wait_for_keypress(False)
     return key.c
 
+def print_char(coords, char, color):
+    """
+    Print a character to the display.
+
+    coords - an (x, y) tuple of integers representing the char's coordinates.
+    char - a 1-character string representing the character printed.
+    color - a 3-character (r, g, b) tuple of integers from 0 to 255.
+        (0, 0, 0) is black; (255, 255, 255) is white; (255, 0, 0) is red; etc.
+    """
+
+    tcod.console_set_background_color(None, tcod.black)
+    tcod.console_set_foreground_color(None, tcod.Color(color[0], color[1], color[2]))
+    tcod.console_put_char(None, coords[0], coords[1], ord(char), tcod.BKGND_SET)
+
 def display_array(array):
     """
     Copy the array of 1-character strings supplied to the screen, and flush.
@@ -30,7 +44,7 @@ def display_array(array):
 
     for x in range(80):
         for y in range(24):
-            tcod.console_put_char(None, x, y, ord(array[x,y]), tcod.BKGND_NONE)
+            print_char((x, y), array[x,y], (255, 255, 255))
 
     refresh()
 
