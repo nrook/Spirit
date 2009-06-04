@@ -58,7 +58,7 @@ def refresh_screen(current_level = None):
 
     level_cache = current_level
 
-    display_main_screen(current_level.getArray(),
+    display_main_screen(current_level.getFOVArray(),
                         current_level.getPlayer().coords,
                         current_level.messages.getArray(),
                         current_level.getPlayer().getSidebar().getArray())

@@ -81,6 +81,26 @@ def overlay(arrays, heights):
 
     return (composite_array, height_array)
 
+def fovize(arr, view):
+    """
+    Returns a copy of arr with only the points in view visible.
+
+    Note that despite its wide scope, this function should be fairly fast.
+
+    arr - an array.
+    view - an iterable object full of points (tuples of coordinates).  Normally
+        this is a fov object, but that is not necessary.
+
+    Returns - a copy of arr, except that each point in arr which is not in view
+        is replaced with a transparent character.
+    """
+
+    ret_array = empty_str_array(arr.shape)
+    for coord in view:
+        ret_array[coord] = arr[coord]
+
+    return ret_array
+
 def empty_str_array(dimensions):
     """
     Return an array such that empty_str_array(x,y).shape == (x,y) and with

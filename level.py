@@ -156,6 +156,19 @@ class Level(list):
             self.refreshMaps()
         return self.__composite_map
 
+    def getFOVArray(self, view = None):
+        """
+        Get an array representing those squares in the array visible.
+
+        view - a fov containing the squares you want to be visible in the array.
+               If view is None, the player's FOV is used.
+        
+        Returns: an array of characters.
+        """
+        
+        view = view if view != None else self.getPlayer().fov
+        return arrays.fovize(self.getArray(), view)
+
     def dudeGlyph(self, coords):
         """
         Get the symbol representing the spot on the dudeLayer at coords.

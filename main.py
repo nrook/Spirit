@@ -47,7 +47,7 @@ def main(win = None):
         curlev.addPlayer(player)
 
     display.init()
-    display.display_main_screen(curlev.getArray(),
+    display.display_main_screen(curlev.getFOVArray(),
                                 curlev.getPlayer().coords,
                                 curlev.messages.getArray(),
                                 curlev.getPlayer().getSidebar().getArray())

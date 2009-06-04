@@ -32,6 +32,9 @@ class fov(object):
         else:
             return self.__the_field.__contains__(key)
 
+    def __iter__(self):
+        return self.__the_field.__iter__()
+
     def recalculate(self, level_, initial_location):
         """
         Set this fov to the squares seen from initial_location on level_.
