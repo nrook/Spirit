@@ -8,6 +8,7 @@ import coordinates
 import level
 import log
 import dude
+import config
 
 def randomDungeon():
     """
@@ -37,11 +38,11 @@ def randomDungeon():
         for y in range(0, 3):
             percent = rng.randInt(1, 100)
             if percent <= 60:
-                sector_types[(x, y)] = 1 #it's a room!
+                sector_types[(x, y)] = 1 # it's a room!
             elif percent <= 75:
-                sector_types[(x, y)] = 2 #it's a corridor!
+                sector_types[(x, y)] = 2 # it's a corridor!
             else:
-                sector_types[(x, y)] = 0 #it's empty!
+                sector_types[(x, y)] = 0 # it's empty!
     
     room_nwcoords = {}
     room_secoords = {}
@@ -57,14 +58,14 @@ def randomDungeon():
                 room_se = (room_nw[0] + rng.randInt(3, 8),
                            room_nw[1] + rng.randInt(3, 8))
             
-                #check validity of room dimensions
+                # check validity of room dimensions
                 if room_se[0] <= sector_se[0] and room_se[1] <= sector_se[1]:
                     room_nwcoords[sector_coords] = room_nw
                     room_secoords[sector_coords] = room_se
                     room_created = True
                     
         elif sector_types[sector_coords] == 2:
-            #A corridor is currently implemented as just a 1-space room.
+            # A corridor is currently implemented as just a 1-space room.
             corridor_coords = (rng.randInt(sector_nwcorners[sector_coords][0],
                                            sector_nwcorners[sector_coords][0] + sector_size[0] - 1,),
                                rng.randInt(sector_nwcorners[sector_coords][1],
@@ -72,7 +73,7 @@ def randomDungeon():
             room_nwcoords[sector_coords] = corridor_coords
             room_secoords[sector_coords] = corridor_coords
     
-    #Check whether everywhere is accessible; if not, do a redo.
+    # Check whether everywhere is accessible; if not, do a redo.
     sector_is_accessible = {}
     for x in range(3):
         for y in range(3):
@@ -109,9 +110,9 @@ def randomDungeon():
             for x in range(room_nwcoords[coord][0], room_secoords[coord][0] + 1):
                 for y in range(room_nwcoords[coord][1], room_secoords[coord][1] + 1):
                     if sector_types[coord] == 1:
-                        ret_dungeon[(x, y)] = '.'
+                        ret_dungeon[(x, y)] = level.ROOM_INTERIOR_GLYPH
                     else:
-                        ret_dungeon[(x, y)] = '#'
+                        ret_dungeon[(x, y)] = level.CORRIDOR_GLYPH
             
             for coord_adjustment in ((1, 0), (0, 1)):
                 adjacent_coord = coordinates.add(coord, coord_adjustment)
@@ -120,8 +121,8 @@ def randomDungeon():
                         rng.randomPointInRect(room_nwcoords[coord], room_secoords[coord]),
                         rng.randomPointInRect(room_nwcoords[adjacent_coord], room_secoords[adjacent_coord]))
     
-    ret_dungeon[entrance_coords] = ">"
-    ret_dungeon[exit_coords] = "<"
+    ret_dungeon[entrance_coords] = level.UPSTAIRS_GLYPH
+    ret_dungeon[exit_coords] = level.DOWNSTAIRS_GLYPH
     
     return ret_dungeon
 
@@ -155,8 +156,8 @@ def make_corridor(dungeon, start_coords, end_coords):
         current_coords[major_dimension] = major_coordinate
         current_coords[minor_dimension] = first_coords[minor_dimension]
         current_coords = tuple(current_coords)
-        if dungeon[current_coords] == ' ':
-            dungeon[current_coords] = '#'
+        if dungeon[current_coords] == config.TRANSPARENT_GLYPH:
+            dungeon[current_coords] = level.CORRIDOR_GLYPH
     
     if first_coords[minor_dimension] <= last_coords[minor_dimension]:
         minor_coordinate_range = range(first_coords[minor_dimension], last_coords[minor_dimension] + 1)
@@ -168,16 +169,16 @@ def make_corridor(dungeon, start_coords, end_coords):
         current_coords[major_dimension] = kink_major_coordinate
         current_coords[minor_dimension] = minor_coordinate
         current_coords = tuple(current_coords)
-        if dungeon[current_coords] == ' ':
-            dungeon[current_coords] = '#'
+        if dungeon[current_coords] == config.TRANSPARENT_GLYPH:
+            dungeon[current_coords] = level.CORRIDOR_GLYPH
     
     for major_coordinate in range(kink_major_coordinate, last_coords[major_dimension] + 1):
         current_coords = [0, 0]
         current_coords[major_dimension] = major_coordinate
         current_coords[minor_dimension] = last_coords[minor_dimension]
         current_coords = tuple(current_coords)
-        if dungeon[current_coords] == ' ':
-            dungeon[current_coords] = '#'
+        if dungeon[current_coords] == config.TRANSPARENT_GLYPH:
+            dungeon[current_coords] = level.CORRIDOR_GLYPH
 
 def populate_level(pop_level, monster_fact):
     """
@@ -194,7 +195,7 @@ def populate_level(pop_level, monster_fact):
         monster_has_been_created = False
         while not monster_has_been_created:
             monster_coords = rng.randomPointInRect(level_nwcorner, level_secorner)
-            if pop_level.dungeonGlyph(monster_coords) in ('#', ".") and \
+            if pop_level.dungeonGlyph(monster_coords) in level.PASSABLE_TERRAIN and \
                 monster_coords not in pop_level.dudeLayer:
                 
                 pop_level.addDude(monster_to_be_made, monster_coords)
@@ -208,15 +209,15 @@ def randomLevel(floor, player, monster_fact):
     dungeon = randomDungeon()
     elements = level.empty_elements(dungeon.shape)
     
-    entrance_coords = arrays.index(">", dungeon)
+    entrance_coords = arrays.index(level.DOWNSTAIRS_GLYPH, dungeon)
     # Currently, the > glyph is not used in the game, as downward travel cannot
     # happen.
-    # elements[entrance_coords] = ">"
-    dungeon[entrance_coords] = '.'
+    # elements[entrance_coords] = level.DOWNSTAIRS_GLYPH
+    dungeon[entrance_coords] = level.ROOM_INTERIOR_GLYPH
     
-    exit_coords = arrays.index("<", dungeon)
-    elements[exit_coords] = "<"
-    dungeon[exit_coords] = '.'
+    exit_coords = arrays.index(level.UPSTAIRS_GLYPH, dungeon)
+    elements[exit_coords] = level.UPSTAIRS_GLYPH
+    dungeon[exit_coords] = level.ROOM_INTERIOR_GLYPH
     
     ret_level = level.Level(dungeon.shape, floor, None, elements, dungeon)
     
@@ -227,7 +228,3 @@ def randomLevel(floor, player, monster_fact):
 
     return ret_level
     
-
-if __name__ == "__main__":
-    #Test suite.
-    print randomLevel().getPanel()

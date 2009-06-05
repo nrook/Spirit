@@ -7,6 +7,7 @@ import coordinates
 import numpy
 import config
 import exc
+import symbol
 
 def index(element, array):
     """
@@ -107,13 +108,13 @@ def empty_str_array(dimensions):
     appropriate a,b, empty_str_array(x,y)[a,b] == config.TRANSPARENT_GLYPH.
     """
 
-    ret_array = numpy.empty(dimensions, 'S1')
+    ret_array = numpy.empty(dimensions, 'S%d' % symbol.glyph_struct_size)
     for x in range(dimensions[0]):
         for y in range(dimensions[1]):
             ret_array[x,y] = config.TRANSPARENT_GLYPH
     return ret_array
 
-def print_str_to_end_of_line(initial_coords, string_used, array):
+def print_str_to_end_of_line(initial_coords, string_used, array, color = (255, 255, 255)):
     """
     Print "string_used" to "array".  The first character of string_used is
     printed to array[initial_coords], the second to
@@ -127,6 +128,7 @@ def print_str_to_end_of_line(initial_coords, string_used, array):
     string_used - the string printed to the array.
     array - the array of characters (1-character strings) to which the
         string is printed.
+    color - the color of the text being printed.
     """
     
 # overflow chars = chars in array line - chars before string - chars in string
@@ -139,17 +141,23 @@ def print_str_to_end_of_line(initial_coords, string_used, array):
     printed_str = "".join(
         (string_used, config.TRANSPARENT_GLYPH * overflow_chars))
 
-    print_str(initial_coords, printed_str, array)
+    print_str(initial_coords, printed_str, array, color)
 
     return
 
-def print_str(initial_coords, string_used, array):
+def print_str(initial_coords, string_used, array, color = (255, 255, 255)):
     """
     Print "string_used" to "array".  The first character of string_used is
     printed to array[initial_coords], the second to
     array[initial_coords[0] + 1, initial_coords[1]], etc.  The rest of the
     line in the array after the screen will be unchanged.  If the string
     does not fit in the array, a ValueError will be thrown.
+
+    initial_coords - the play in the array where the first character of the
+        string is printed.
+    string_used - the string to be printed to the array.
+    array - the array to which the string is printed.
+    color - the color of the string being printed.
     """
 
     if initial_coords[0] + len(string_used) > array.shape[0]:
@@ -158,7 +166,7 @@ def print_str(initial_coords, string_used, array):
         % (len(string_used), initial_coords[0], array.shape[0]))
 
     for i in range(len(string_used)):
-        array[initial_coords[0] + i, initial_coords[1]] = string_used[i]
+        array[initial_coords[0] + i, initial_coords[1]] = symbol.englyph(string_used[i], color)
 
     return
 
@@ -264,7 +272,6 @@ def copy_entire_array(dst_nw_corner, src_array, dst_array):
     
     dst_nw_corner - a tuple of integers representing the coordinates
         into which src_array[0,0] will be copied.
-    block_dims - the di-wait, what the fuck?
     src_array - the array to be copied.
     dst_array - the array into which src_array is copied.
     """

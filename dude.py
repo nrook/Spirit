@@ -12,6 +12,7 @@ import exc
 import rng
 import config
 import symbol
+import level
 import fixedobj
 import action
 import coordinates
@@ -48,6 +49,8 @@ An ordinary dude has speed 12.
 I will probably ignore this whole comment.
 """
 
+PLAYER_GLYPH = symbol.englyph('@', (255, 255, 255))
+
 class Dude(fixedobj.FixedObject):
     """
     A generic creature; all players and monsters come from Dudes.
@@ -55,10 +58,10 @@ class Dude(fixedobj.FixedObject):
     The Dude class should not be instantiated as is; it exists only to have
     other classes derived from it.
     """
-    def __init__(self, coords = (0, 0), glyph = symbol.Glyph('!'),
+    def __init__(self, coords = (0, 0), glyph = symbol.BAD_GLYPH,
                  speed = 12, max_HP = 2, currentLevel = None, name = "Unnamed",
                  attack = 1, defense = 0, tags = None, char_level = 1,
-                 passableTerrain = (symbol.Glyph('#'),symbol.Glyph('.'))):
+                 passableTerrain = level.PASSABLE_TERRAIN):
         
         fixedobj.FixedObject.__init__(self, coords, glyph, currentLevel)
         self.name = name
@@ -160,9 +163,9 @@ class Player(Dude):
         if deck is None:
             deck = cards.Deck()
 
-        max_HP = 12 + 6 * char_level
+        max_HP = 24 + 6 * char_level
 
-        Dude.__init__(self, coords, symbol.Glyph('@'), speed, max_HP, currentLevel, name, 40, 100, ["proper_noun"], char_level)
+        Dude.__init__(self, coords, PLAYER_GLYPH, speed, max_HP, currentLevel, name, 40, 100, ["proper_noun"], char_level)
 
         if currentLevel is not None:
             self.__sidebar = Sidebar(name, currentLevel.floor, char_level, 
@@ -466,7 +469,7 @@ class MonsterFactory(list):
         Get the actual monster stored in the factory, not just a duplicate.
         """
         
-        try: #is the key a string?
+        try: # is the key a string?
             key.upper()
         except AttributeError:
             return list.__getitem__(self, key)

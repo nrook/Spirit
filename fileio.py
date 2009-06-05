@@ -135,7 +135,6 @@ def getSaveDude(linelist, initline, lastline, monsterFactory):
     
     ret_dude.setHP(int(attr_dict["curhp"]))
     
-    
     return ret_dude
 
 def getElements(linelist, initline, lastline, dimensions):
@@ -241,7 +240,7 @@ def getMonster(linelist, initline = 0):
     
     return dude.Monster(attrDict["name"],
                         None, 
-                        symbol.Glyph(attrDict["glyph"]),
+                        symbol.englyph(attrDict["glyph"], (255, 0, 0)),
                         attrDict["ai"],
                         int(attrDict["speed"]),
                         int(attrDict["hp"]),

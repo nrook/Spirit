@@ -16,7 +16,7 @@ class FixedObject(object):
     Each fixed object also has a unique ID.
     """
     
-    def __init__(self, coords, glyph = symbol.Glyph('!'), currentLevel = None):
+    def __init__(self, coords, glyph = symbol.BAD_GLYPH, currentLevel = None):
         object.__init__(self)
         self.ID = config.getID()
         self.coords = coords

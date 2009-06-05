@@ -2,10 +2,8 @@
 The main loop; if you want to play, this is where you do it.
 """
 
-# Schedule:
-# 1. Implement special attacks.
-# 2. Implement decks.
-# 3. Fix saving.
+# The game is broken because the numpy library is broken.
+# Try upgrading it.
 
 LOAD_FROM_SAVE = False
 LOAD_FROM_RANDOM_DUNGEON = True

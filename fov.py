@@ -1,5 +1,5 @@
 import coordinates
-from config import OPEN_GLYPHS
+from level import OPEN_GLYPHS
 
 class fov(object):
     """

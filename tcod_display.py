@@ -4,6 +4,7 @@ A module to do various things with the Doryen library.
 
 import arrays
 import config
+import symbol
 
 import libtcodpy as tcod
 
@@ -44,7 +45,8 @@ def display_array(array):
 
     for x in range(80):
         for y in range(24):
-            print_char((x, y), array[x,y], (255, 255, 255))
+            deglyphed = symbol.deglyph(array[x,y])
+            print_char((x, y), deglyphed[0], deglyphed[1])
 
     refresh()
 

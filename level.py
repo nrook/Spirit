@@ -8,6 +8,16 @@ import coordinates
 import numpy
 import log
 import msg
+import symbol
+
+ROOM_INTERIOR_GLYPH = symbol.englyph('.', (255, 255, 255))
+CORRIDOR_GLYPH = symbol.englyph('#', (118, 41, 0))
+UPSTAIRS_GLYPH = symbol.englyph('>', (255, 0, 0))
+DOWNSTAIRS_GLYPH = symbol.englyph('<', (0, 255, 0))
+
+OPEN_GLYPHS = set([ROOM_INTERIOR_GLYPH])
+SEMI_OPEN_GLYPHS = set([CORRIDOR_GLYPH])
+PASSABLE_TERRAIN = set([ROOM_INTERIOR_GLYPH, CORRIDOR_GLYPH])
 
 class Level(list):
     """
@@ -81,29 +91,28 @@ class Level(list):
     def __str__(self):
         return str(self.getArray())
 
-    def __addCharacterToMap(self, character, coords, height):
+    def __addCharacterToMap(self, glyph, coords, height):
         """
-        Add a character to the composite and height maps.
+        Add a glyph to the composite and height maps.
         """
 
         if not self.__are_maps_correct: return
-        # assert self.__are_maps_correct
         assert height != self.__height_map[coords], \
             "'%s' is blocked by '%s': attempted to place at same height, %d." \
-            % (character, self.__composite_map, height)
+            % (glyph, self.__composite_map, height)
 
 # Remember that small height means being near the top.
         if height < self.__height_map[coords]:
-            self.__composite_map[coords] = character
+            self.__composite_map[coords] = glyph
             self.__height_map[coords] = height
 
         return
 
     def __delCharacterFromMap(self, coords, height):
         """
-        Delete the character specified from the composite and height maps,
-        searching below it for a character to replace it.  If the character
-        is below the character on the composite map, do nothing.
+        Delete the glyph specified from the composite and height maps,
+        searching below it for a glyph to replace it.  If the glyph
+        is below the glyph on the composite map, do nothing.
         """
         
         if not self.__are_maps_correct: return
@@ -118,30 +127,30 @@ class Level(list):
     def __getCharacterBelow(self, coords, height):
         """
         Return the symbol and height of the highest non-transparent
-        character at coords below height.  If no such character exists,
+        glyph at coords below height.  If no such character exists,
         return the transparent character and a very large height.
 
         coords - a tuple of integers representing the location of the
-            character being searched for.
+            glyph being searched for.
         height - an integer representing the (exclusive) lower limit
-            of height for the character being looked for.
+            of height for the glyph being looked for.
         
-        Returns - a pair, containing a 1-character string (the character
+        Returns - a pair, containing a 1-character string (the glyph
             found) and an integer (its height).
         """
 
         if height < self.__DUDE_HEIGHT:
-            char = self.dudeGlyph(coords)
-            if char != config.TRANSPARENT_GLYPH:
-                return (char, self.__DUDE_HEIGHT)
+            glyph = self.dudeGlyph(coords)
+            if glyph != config.TRANSPARENT_GLYPH:
+                return (glyph, self.__DUDE_HEIGHT)
         if height < self.__ELEMENT_HEIGHT:
-            char = self.elementGlyph(coords)
-            if char != config.TRANSPARENT_GLYPH:
-                return (char, self.__ELEMENT_HEIGHT)
+            glyph = self.elementGlyph(coords)
+            if glyph != config.TRANSPARENT_GLYPH:
+                return (glyph, self.__ELEMENT_HEIGHT)
         if height < self.__DUNGEON_HEIGHT:
-            char = self.dungeonGlyph(coords)
-            if char != config.TRANSPARENT_GLYPH:
-                return (char, self.__DUNGEON_HEIGHT)
+            glyph = self.dungeonGlyph(coords)
+            if glyph != config.TRANSPARENT_GLYPH:
+                return (glyph, self.__DUNGEON_HEIGHT)
 
         return (config.TRANSPARENT_GLYPH, self.__DUNGEON_HEIGHT + 1)
 

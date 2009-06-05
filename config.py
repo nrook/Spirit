@@ -25,11 +25,17 @@ DIRECTION_SWITCH =  {
 
 import symbol
 
-TRANSPARENT_GLYPH = symbol.Glyph(' ')
+TRANSPARENT_GLYPH = symbol.englyph(' ', (0, 0, 0))
 
 # Those symbols which represent the interior of a room, spaces which can be
 # easily seen through.
-OPEN_GLYPHS = set(['.'])
+# Put this in level instead!
+# OPEN_GLYPHS = set(['.'])
+
+# Those symbols which represent a square which is not easily seen through, but
+# which is somewhat transparent (like cooridor spaces).
+# Put this in level instead!
+# SEMI_OPEN_GLYPHS = set(['#'])
 
 import objid
 
