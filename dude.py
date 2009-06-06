@@ -49,7 +49,7 @@ An ordinary dude has speed 12.
 I will probably ignore this whole comment.
 """
 
-PLAYER_GLYPH = symbol.englyph('@', (255, 255, 255))
+PLAYER_GLYPH = symbol.Glyph('@', (255, 255, 255))
 
 class Dude(fixedobj.FixedObject):
     """

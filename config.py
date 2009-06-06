@@ -25,7 +25,7 @@ DIRECTION_SWITCH =  {
 
 import symbol
 
-TRANSPARENT_GLYPH = symbol.englyph(' ', (0, 0, 0))
+TRANSPARENT_GLYPH = symbol.Glyph(' ', (0, 0, 0))
 
 # Those symbols which represent the interior of a room, spaces which can be
 # easily seen through.

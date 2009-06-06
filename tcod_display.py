@@ -34,7 +34,7 @@ def print_char(coords, char, color):
         (0, 0, 0) is black; (255, 255, 255) is white; (255, 0, 0) is red; etc.
     """
 
-    tcod.console_set_background_color(None, tcod.black)
+    # tcod.console_set_background_color(None, tcod.black)
     tcod.console_set_foreground_color(None, tcod.Color(color[0], color[1], color[2]))
     tcod.console_put_char(None, coords[0], coords[1], ord(char), tcod.BKGND_SET)
 
@@ -45,8 +45,8 @@ def display_array(array):
 
     for x in range(80):
         for y in range(24):
-            deglyphed = symbol.deglyph(array[x,y])
-            print_char((x, y), deglyphed[0], deglyphed[1])
+            glyph = array[x,y]
+            print_char((x, y), glyph.char, glyph.color)
 
     refresh()
 

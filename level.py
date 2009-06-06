@@ -10,10 +10,10 @@ import log
 import msg
 import symbol
 
-ROOM_INTERIOR_GLYPH = symbol.englyph('.', (255, 255, 255))
-CORRIDOR_GLYPH = symbol.englyph('#', (118, 41, 0))
-UPSTAIRS_GLYPH = symbol.englyph('>', (255, 0, 0))
-DOWNSTAIRS_GLYPH = symbol.englyph('<', (0, 255, 0))
+ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
+CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
+UPSTAIRS_GLYPH = symbol.Glyph('>', (255, 0, 0))
+DOWNSTAIRS_GLYPH = symbol.Glyph('<', (0, 255, 0))
 
 OPEN_GLYPHS = set([ROOM_INTERIOR_GLYPH])
 SEMI_OPEN_GLYPHS = set([CORRIDOR_GLYPH])

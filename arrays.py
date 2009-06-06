@@ -108,7 +108,7 @@ def empty_str_array(dimensions):
     appropriate a,b, empty_str_array(x,y)[a,b] == config.TRANSPARENT_GLYPH.
     """
 
-    ret_array = numpy.empty(dimensions, 'S%d' % symbol.glyph_struct_size)
+    ret_array = numpy.empty(dimensions, 'O')
     for x in range(dimensions[0]):
         for y in range(dimensions[1]):
             ret_array[x,y] = config.TRANSPARENT_GLYPH
@@ -138,8 +138,7 @@ def print_str_to_end_of_line(initial_coords, string_used, array, color = (255, 2
         "String of length %d starting at %d needs more than %d array size."
         % (len(string_used), initial_coords[0], array.shape[0]))
 
-    printed_str = "".join(
-        (string_used, config.TRANSPARENT_GLYPH * overflow_chars))
+    printed_str = string_used + config.TRANSPARENT_GLYPH.char
 
     print_str(initial_coords, printed_str, array, color)
 
@@ -166,7 +165,7 @@ def print_str(initial_coords, string_used, array, color = (255, 255, 255)):
         % (len(string_used), initial_coords[0], array.shape[0]))
 
     for i in range(len(string_used)):
-        array[initial_coords[0] + i, initial_coords[1]] = symbol.englyph(string_used[i], color)
+        array[initial_coords[0] + i, initial_coords[1]] = symbol.Glyph(string_used[i], (color[0], color[1], color[2]))
 
     return
 

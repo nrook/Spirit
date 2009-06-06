@@ -240,7 +240,7 @@ def getMonster(linelist, initline = 0):
     
     return dude.Monster(attrDict["name"],
                         None, 
-                        symbol.englyph(attrDict["glyph"], (255, 0, 0)),
+                        symbol.Glyph(attrDict["glyph"], (255, 0, 0,)),
                         attrDict["ai"],
                         int(attrDict["speed"]),
                         int(attrDict["hp"]),
