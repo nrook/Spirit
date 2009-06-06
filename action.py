@@ -30,8 +30,11 @@ CRITICAL: Perform a critical hit, with a CRIT_MULTIPLIER damage multiplier.
 
 import coordinates
 import rng
+import tcod_display as display
 
 CRIT_MULTIPLIER = 2
+KNOCK_DAMAGE = 5
+KNOCK_DISTANCE = 10
 
 class Action(object):
     """
@@ -250,6 +253,24 @@ def do_special_melee(attack_type, source, target):
             % {"SOURCE_NAME": source.getName(),
                "DAMAGE": damage_dealt,
                "TARGET_NAME": target.getName()})
+        target.cur_HP -= damage_dealt
+        target.checkDeath()
+    elif attack_type == "KNOCK":
+        damage_dealt = KNOCK_DAMAGE
+        direction = coordinates.subtract(target.coords, source.coords)
+        source.currentLevel.messages.append(
+        "%(SOURCE_NAME)s delivers a wicked punch to %(TARGET_NAME)s! (%(DAMAGE)d)"
+            % {"SOURCE_NAME": source.getName(),
+               "DAMAGE": damage_dealt,
+               "TARGET_NAME": target.getName()})
+        for i in range(KNOCK_DISTANCE):
+            display.refresh_screen()
+            destination = coordinates.add(target.coords, direction)
+            if target.canMove(destination):
+                target.currentLevel.moveDude(target, destination)
+            else:
+                break
+        display.refresh_screen()
         target.cur_HP -= damage_dealt
         target.checkDeath()
     else:

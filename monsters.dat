@@ -7,8 +7,11 @@ def=100
 speed=12
 ai=CLOSE
 level=1
-spec=NONE
-specfreq=0
+r=200
+g=200
+b=200
+spec=KNOCK
+specfreq=50
 [ENDSEC]
 
 <MONSTER>
@@ -20,6 +23,9 @@ def=100
 speed=12
 ai=CLOSE
 level=2
+r=50
+g=90
+b=255
 spec=CRITICAL
 specfreq=30
 [ENDSEC]
@@ -33,6 +39,9 @@ def=100
 speed=12
 ai=CLOSE
 level=2
+r=255
+g=0
+b=0
 spec=NONE
 specfreq=0
 [TAG]
