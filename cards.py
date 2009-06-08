@@ -57,7 +57,7 @@ class Deck(object):
         to the end of the Hand.  If the Hand is full, do nothing.  Return True
         if a card is drawn, and False if one is not.
         """
-        if len(self.hand) <= self.HAND_MAX_LENGTH:
+        if len(self.hand) < self.HAND_MAX_LENGTH:
             if len(self.library) >= 1:
                 self.hand.append(self.library.pop())
                 return True
