@@ -28,9 +28,9 @@ class fov(object):
         try:
             key.isPlayer() # check if key is a dude
         except AttributeError:
-            return self.dudes.__contains(key)
-        else:
             return self.__the_field.__contains__(key)
+        else:
+            return self.dudes.__contains__(key)
 
     def __iter__(self):
         return self.__the_field.__iter__()
@@ -73,3 +73,12 @@ class fov(object):
 
         self.__the_field = fov_set
         self.dudes = frozenset(dude_set)
+
+    def updateMemory(self, memory):
+        """
+        Add the coordinates in the FOV to a given set.
+
+        memory - the set for the coordinates to be added to.
+        """
+
+        memory.update(self.__the_field)

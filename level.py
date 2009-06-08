@@ -176,7 +176,7 @@ class Level(list):
         """
         
         view = view if view != None else self.getPlayer().fov
-        return arrays.fovize(self.getArray(), view)
+        return arrays.fovize(self.getArray(), view, self.dungeon, self.getPlayer().memory, symbol.REMEMBERED_COLOR)
 
     def dudeGlyph(self, coords):
         """

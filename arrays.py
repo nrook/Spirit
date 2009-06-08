@@ -82,23 +82,35 @@ def overlay(arrays, heights):
 
     return (composite_array, height_array)
 
-def fovize(arr, view):
+def fovize(arr, view, memory_arr = None, memory = None, memory_color = (0, 0, 0)):
     """
     Returns a copy of arr with only the points in view visible.
 
     Note that despite its wide scope, this function should be fairly fast.
 
+    If memory_arr is provided, then if a coordinate is not in "view" but is in
+    "memory," a colored version of that coordinate in memory_arr is displayed
+    instead.
+
     arr - an array.
     view - an iterable object full of points (tuples of coordinates).  Normally
         this is a fov object, but that is not necessary.
+    memory_arr - an array.
+    memory - an iterable object full of points.
+    memory_color - the color which displayed things from memory will be painted.
 
     Returns - a copy of arr, except that each point in arr which is not in view
-        is replaced with a transparent character.
+        is replaced with a transparent character, or a colored copy of a point
+        in memory_arr, if applicable.
     """
 
     ret_array = empty_str_array(arr.shape)
     for coord in view:
         ret_array[coord] = arr[coord]
+
+    for coord in memory:
+        if coord not in view:
+            ret_array[coord] = symbol.Glyph(memory_arr[coord].char, memory_color)
 
     return ret_array
 

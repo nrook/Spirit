@@ -5,6 +5,8 @@ Right now, it's pretty boring, as symbols that represent characters are just
 one-element strings.
 """
 
+REMEMBERED_COLOR = (99, 99, 99)
+
 class Glyph(object):
     """
     The symbol that represents a character.

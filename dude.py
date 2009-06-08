@@ -177,6 +177,9 @@ class Player(Dude):
 
         self.deck = deck
 
+        self.memory = set()
+        self.fov.updateMemory(self.memory)
+
     def getSidebar(self):
         """
         Get the sidebar of this player, creating it if necessary.
@@ -309,6 +312,16 @@ class Player(Dude):
         self.max_HP += HP_boost
         self.cur_HP += HP_boost
         self.char_level += 1
+
+    def resetFOV(self):
+        """
+        Reset the player's field of view, determined by its current level and
+        its coordinates.  Unlike the generic dude version, also updates the
+        player's memory.
+        """
+        
+        self.fov.recalculate(self.currentLevel, self.coords)
+        self.fov.updateMemory(self.memory)
 
 class Monster(Dude):
     """

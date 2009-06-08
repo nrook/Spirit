@@ -2,8 +2,7 @@
 The main loop; if you want to play, this is where you do it.
 """
 
-# The game is broken because the numpy library is broken.
-# Try upgrading it.
+# Memory is not completely updated yet, since it seems really hard.
 
 LOAD_FROM_SAVE = False
 LOAD_FROM_RANDOM_DUNGEON = True
