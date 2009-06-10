@@ -3,6 +3,7 @@ import rng
 MON_ABILITY_DICT = {
     "lancer" : {"code":"CRITICAL", "aname":"Damaging attack"},
     "boxer" : {"code":"KNOCK", "aname":"Punch"},
+    "grenadier": {"code":"GRENTHROW", "aname":"Throw grenade"},
 }
 
 class Deck(object):

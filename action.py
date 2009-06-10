@@ -15,6 +15,7 @@ Move: MOVE
 Stand still: WAIT
 Standard attack: STDATK
 Special melee attack: SPMELEE
+Explode: EXPLODE
 Go upstairs: UP
 """
 
@@ -30,6 +31,7 @@ CRITICAL: Perform a critical hit, with a CRIT_MULTIPLIER damage multiplier.
 
 import coordinates
 import rng
+import events
 import tcod_display as display
 
 CRIT_MULTIPLIER = 2
@@ -203,6 +205,48 @@ class SpecialMelee(Action):
         do_special_melee(self.code, self.source, self.target)
         return True
 
+class Explode(Action):
+    """
+    An action representing an attack on a square and its adjacent squares.
+
+    Explosions are fixed-damage.
+    """
+
+    def __init__(self, level_, coords, damage):
+        Action.__init__(self, "EXPLODE", None)
+        self.level_ = level_
+        self.coords = coords
+        self.damage = damage
+
+    def do(self):
+        for explosion_coords in coordinates.radius(1, self.coords, self.level_.dimensions):
+            if explosion_coords in self.level_.dudeLayer:
+                target = self.level_.dudeLayer[explosion_coords]
+                target.cur_HP -= self.damage
+                self.level_.messages.append("%s is hurt by the explosion! (%d)" %
+                    (target.getName(), self.damage))
+                target.checkDeath()
+
+        return True
+
+class ThrowGrenade(Action):
+    """
+    An action representing a grenade hurled short-range to a specific square.
+    """
+
+    def __init__(self, source, target_coords, damage):
+        Action.__init__(self, "GRENTHROW", "%(SOURCE_NAME)s threw a grenade!")
+        self.source = source
+        self.target_coords = target_coords
+        self.damage = damage
+
+    def do(self):
+        self.source.currentLevel.messages.append(self.message
+            % {"SOURCE_NAME": self.source.getName()})
+        self.source.currentLevel.events.append(events.TimedExplosion(self.source.currentLevel, self.target_coords, self.damage, 2))
+
+        return True
+
 def is_generic_action(act):
     """
     Return True if the action passed is a generic action both lots of players
@@ -273,6 +317,12 @@ def do_special_melee(attack_type, source, target):
         display.refresh_screen()
         target.cur_HP -= damage_dealt
         target.checkDeath()
+    elif attack_type == "EXPLODE":
+        explode_action = Explode(source.currentLevel, source.coords, 10)
+        source.currentLevel.messages.append(
+        "%(SOURCE_NAME)s explodes!"
+            % {"SOURCE_NAME": source.getName()})
+        explode_action.do()
     else:
         raise exc.InvalidDataWarning("%s special ability used by %s on %s."
                                      % (attack_type, str(source), str(target)))

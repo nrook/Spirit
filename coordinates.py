@@ -54,6 +54,36 @@ def adjacent_coords(coord):
 
     return [(coord[0] + i[0], coord[1] + i[1]) for i in DIRECTIONS]
 
+def radius(rad, coords, dimensions = None):
+    """
+    Return a set containing those coordinates rad away from a square.
+
+    Note that radius does not use Euclidean distance.  For instance, the eight
+    squares surrounding a square are all interpreted as being distance 1 away
+    from that square.
+
+    rad - the radius of the circle to be returned.
+    coords - the coordinates at the center of the circle.
+    dimensions - the dimensions of the plane on which the circle is being made.
+        This is used so that the circle returned does not include nonexistent
+        coordinates, like (20, 20) on a 9x9 square.  If dimensions = None, no
+        checking for invalid coordinates will be done, so even coordinates like
+        (0, -1) may be returned.
+    """
+    
+    ret_set = set()
+    if dimensions == None:
+        for x in range(coords[0] - rad, coords[0] + rad + 1):
+            for y in range(coords[1] - rad, coords[1] + rad + 1):
+                ret_set.add((x, y))
+    else:
+        for x in range(max(coords[0] - rad, 0), min(coords[0] + rad, dimensions[0] - 1) + 1):
+            for y in range(max(coords[1] - rad, 0), min(coords[1] + rad, dimensions[1] - 1) + 1):
+                ret_set.add((x, y))
+
+    return ret_set
+
+
 def distance(coord1, coord2):
     """Return the distance between two points, as a float."""
     
@@ -62,6 +92,15 @@ def distance(coord1, coord2):
         distance += (coord2[i] - coord1[i])**2
     distance **= 0.5
     return distance
+
+def minimumPath(coord1, coord2):
+    """
+    Return the minimum number of steps required to connect two coordinates.
+
+    A step is a single move in any of the eight directions (N, NW, etc.).
+    """
+
+    return max(abs(coord2[0] - coord1[0]), abs(coord2[1] - coord1[1]))
 
 def centeredRect(center, dimensions):
     """

@@ -9,6 +9,7 @@ import numpy
 import log
 import msg
 import symbol
+import events
 
 ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
 CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
@@ -86,7 +87,7 @@ class Level(list):
         self.__height_map = numpy.zeros(dimensions, 'i')
         self.__are_maps_correct = False
         self.__queue = None
-        self.__tick = LevelTick(self)
+        self.events = [events.LevelTick(self)]
     
     def __str__(self):
         return str(self.getArray())
@@ -317,6 +318,7 @@ class Level(list):
         The following restrictions are in place here:
         1. The player, if he is moving, always moves first.
         2. The monsters move in a consistent order.
+        3. After the monsters move, all events occur.
         """
 
 # The first dude in the queue is the player, but there is no real necessity
@@ -324,12 +326,12 @@ class Level(list):
 # is an instance of the LevelTick class, which is not a dude.  Rather,
 # the LevelTick instance updates things in the Level which should only be
 # updated once per turn.  Currently, this LevelTick instance is a piece of
-# state local to the Level it updates, __tick.
+# state local to the Level it updates.
         
         queue = [presentDude for presentDude in self.dudeLayer]
         del queue[queue.index(self.player)]
         queue.insert(0, self.player)
-        queue.insert(0, self.__tick)
+        queue.extend(self.events)
         self.__queue = queue
 
     def next(self):
@@ -350,34 +352,6 @@ class Level(list):
 
         del self.__queue[0]
         return
-
-class LevelTick(object):
-    """
-    An object which updates the status of a Level once per turn.
-
-    Like a Dude, a LevelTick has an act() method; when this method is called,
-    the LevelTick updates the state of its level.
-    """
-
-    def __init__(self, current_level):
-        """
-        Initialize a LevelTick for the level provided.
-
-        current_level - the Level which the LevelTick should update if its act()
-            method is called.
-        """
-
-        self.__current_level = current_level
-        
-        return
-
-    def act(self):
-        """
-        Update the state of the LevelTick's level.  Return True.
-        """
-        
-        self.__current_level.player.deck.draw()
-        return True
 
 class Layer(list):
     """

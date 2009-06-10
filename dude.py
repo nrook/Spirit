@@ -49,6 +49,11 @@ An ordinary dude has speed 12.
 I will probably ignore this whole comment.
 """
 
+"""
+Legal monster tags:
+"proper_noun": this monster's name is a proper noun.
+"""
+
 PLAYER_GLYPH = symbol.Glyph('@', (255, 255, 255))
 
 class Dude(fixedobj.FixedObject):
@@ -383,6 +388,9 @@ class Monster(Dude):
                 
         elif self.AICode == "CLOSE":
             return self.closeToPlayer()
+
+        elif self.AICode == "RANGEDAPPROACH":
+            return self.rangedApproach()
             
         else:
             return action.Wait(self)
@@ -446,7 +454,34 @@ class Monster(Dude):
             return randomWalk()
         else:
             return action.Move(self, rng.choice(bestMoves))
- 
+
+    def rangedApproach(self):
+        ranged_attack = self.probableRangedAttack()
+        if ranged_attack is not None:
+            return ranged_attack
+        else:
+            return self.closeToPlayer()
+    
+    def probableRangedAttack(self):
+        """
+        Return an action for a ranged attack on a target if such an attack is
+        possible.  Otherwise, return None.
+        """
+        if "two_square_thrower" in self.tags:
+            if self.currentLevel.player in self.fov \
+                and coordinates.minimumPath(self.coords, self.currentLevel.player.coords) in range(1, 4):
+                
+                possible_directions = ((2,0),(2,2),(0,2),(-2,2),(-2,0),(-2,-2),(0,-2),(2,-2))
+                possible_targets = [coordinates.add(self.coords, i) for i in possible_directions if self.canMove(coordinates.add(self.coords, i))]
+                actual_targets = [coords for coords in possible_targets if (coordinates.minimumPath(coords, self.currentLevel.player.coords) <= 1)]
+                if len(actual_targets) == 0:
+                    return None
+                final_target = rng.choice(actual_targets)
+                return action.ThrowGrenade(self, final_target, 10)
+            else:
+                return None
+        else:
+            return None
     
     def die(self):
         if self.spec != "NONE":
