@@ -20,7 +20,7 @@ OPEN_GLYPHS = set([ROOM_INTERIOR_GLYPH])
 SEMI_OPEN_GLYPHS = set([CORRIDOR_GLYPH])
 PASSABLE_TERRAIN = set([ROOM_INTERIOR_GLYPH, CORRIDOR_GLYPH])
 
-class Level(list):
+class Level(object):
     """
     A Level is an object that represents the current state of a dungeon level.
     
@@ -52,7 +52,7 @@ class Level(list):
     __DUNGEON_HEIGHT = 8
     
     def __init__(self, 
-        dimensions = (80, 24), floor = 1, layers = None, elements = None, dungeon = None):
+        dimensions = (80, 24), floor = 1, dude_layer = None, elements = None, dungeon = None):
         """
         Create a Level.
 
@@ -67,20 +67,14 @@ class Level(list):
             other terrain.
         """
 
-        if layers is None:
-            list.__init__(self)
-        else:
-            list.__init__(self, layers)
-        
-        if len(self) < 1:
-            #No dudeLayer, create one.
-            self.append(DudeLayer(None, dimensions))
+        if dude_layer is None:
+            dude_layer = DudeLayer(None, dimensions)
 
         self.floor = floor
         self.dungeon = dungeon
         self.elements = elements
         self.dimensions = dimensions
-        self.dudeLayer = self[0]
+        self.dudeLayer = dude_layer
         self.player = None
         self.messages = msg.MessageBuffer(config.MESSAGES_DIMENSIONS)
         self.__composite_map = arrays.empty_str_array(dimensions)
@@ -451,7 +445,6 @@ class Layer(list):
         """Adds to dictionary as well."""
         list.append(self, item)
         self.__addCoords(item)
-        #self[obj.coords] = obj
         
     def extend(self, item):
         """Adds to dictionary as well."""
