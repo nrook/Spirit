@@ -33,6 +33,7 @@ import coordinates
 import rng
 import events
 import tcod_display as display
+import exc
 
 CRIT_MULTIPLIER = 2
 KNOCK_DAMAGE = 5

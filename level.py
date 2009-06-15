@@ -27,6 +27,7 @@ class Level(object):
     A Level consists of a list of Layers, and a Dungeon at the bottom.
     
     Fields:
+    solidEffects - a glyphMap containing effects to be displayed over the Level.
     dudeLayer - the Layer containing Dudes and, of course, the player.
     elements - an array of characters containing terrain features which
         exist on top of ordinary terrain, like stairs.
@@ -42,11 +43,13 @@ class Level(object):
         __height_map are correct, and don't need to be refreshed.  If
         False, then they are incorrect, and refresh_maps() must be called
         before they are used.
+    __SOLID_EFFECTS_HEIGHT - the height of solid effects.
     __DUDE_HEIGHT - the height of dudes.
     __ELEMENT_HEIGHT - the height of elements.
     __DUNGEON_HEIGHT - the height of terrain.
     """
-
+    
+    __SOLID_EFFECTS_HEIGHT = -1
     __DUDE_HEIGHT = 2
     __ELEMENT_HEIGHT = 5
     __DUNGEON_HEIGHT = 8
@@ -75,6 +78,7 @@ class Level(object):
         self.elements = elements
         self.dimensions = dimensions
         self.dudeLayer = dude_layer
+        self.solidEffects = symbol.glyphMap(dimensions)
         self.player = None
         self.messages = msg.MessageBuffer(config.MESSAGES_DIMENSIONS)
         self.__composite_map = arrays.empty_str_array(dimensions)
@@ -133,7 +137,11 @@ class Level(object):
         Returns - a pair, containing a 1-character string (the glyph
             found) and an integer (its height).
         """
-
+        
+        if height < self.__SOLID_EFFECTS_HEIGHT:
+            glyph = self.solidEffects[coords]
+            if glyph != config.TRANSPARENT_GLYPH:
+                return (glyph, self.__SOLID_EFFECTS_HEIGHT)
         if height < self.__DUDE_HEIGHT:
             glyph = self.dudeGlyph(coords)
             if glyph != config.TRANSPARENT_GLYPH:
@@ -261,6 +269,32 @@ class Level(object):
         """
         
         return self.dungeon[coords]
+
+    def addSolidEffect(self, glyph, coords):
+        """
+        Add a glyph to the level's solid effects map.
+
+        glyph - the glyph to be displayed as a solid effect.
+        coords - the coordinates at which the glyph should be displayed.
+        """
+        
+        if coords in self.solidEffects:
+            raise ValueError("There is already a solid effect, %s, at %s."
+                % (self.solidEffects[coords], coords))
+        self.solidEffects[coords] = glyph
+        self.__addCharacterToMap(glyph, coords, self.__SOLID_EFFECTS_HEIGHT)
+
+    def removeSolidEffect(self, coords):
+        """
+        Remove a glyph from the level's solid effects map.
+
+        coords - the coords at which the glyph should be removed.
+        """
+
+        if coords not in self.solidEffects:
+            raise ValueError("There is no solid effect at %s." % coords)
+        self.__delCharacterFromMap(coords, self.__SOLID_EFFECTS_HEIGHT)
+        del self.solidEffects[coords]
     
     def canMove(self, movedDude, moveCoords):
         """
@@ -500,8 +534,8 @@ def empty_elements(dimensions):
     """
     Return an empty container of terrain elements with the dimensions given.
     """
-
-    return arrays.empty_str_array(dimensions)
+    
+    return symbol.glyphMap(dimensions)
 
 if __name__ == "__main__":
     import dude

@@ -82,6 +82,33 @@ def overlay(arrays, heights):
 
     return (composite_array, height_array)
 
+def overlayPairs(original_array, pair_collections):
+    """
+    Overlay the elements of pair_collection, in order, onto a copy of
+    original_array.
+
+    original_array - an array.
+    pair_collection - a collection of collections of 2-element tuples, of the
+        form (coordinates, glyph).  The point of original_array at coordinates
+        is set to glyph.
+
+    Note that the first collection in pair_collection is the "bottom" one, i.e.
+    if any collections "higher" have glyphs in the same coordinates, then the
+    "higher" ones will be put into the array, and the first one will not.
+
+    Returns - an array of the same coordinates as original_array
+    """
+
+# Note that this function is currently unused.  If I do not find a use for it
+# soon, I should delete it.
+
+    ret_array = array_copy(original_array)
+    for col in pair_collections:
+        for pair in col:
+            ret_array[pair[0]] = pair[1]
+
+    return ret_array
+
 def fovize(arr, view, memory_arr = None, memory = None, memory_color = (0, 0, 0)):
     """
     Returns a copy of arr with only the points in view visible.
@@ -289,3 +316,10 @@ def copy_entire_array(dst_nw_corner, src_array, dst_array):
 
     copy_array_subset((0, 0), dst_nw_corner, src_array.shape,
                       src_array, dst_array)
+
+def copy_array(array_to_copy):
+    """
+    Return a copy of the array array_to_copy.
+    """
+
+    return array_to_copy.copy()

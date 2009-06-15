@@ -34,11 +34,3 @@ def repeat(event):
 
 def stop():
     ev.set()
-
-def effectsMap():
-    """
-    Returns a map identical to a dictionary, except that it returns the
-    transparent glyph on a lookup failure.
-    """
-
-    return collections.defaultDict(lambda: config.TRANSPARENT_GLYPH)

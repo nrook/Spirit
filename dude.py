@@ -20,6 +20,7 @@ import arrays
 import fileio
 import cards
 import fov
+import events
 import kb
 kp = kb.kp
 
@@ -451,7 +452,7 @@ class Monster(Dude):
                 bestDistance = currentDistance
             
         if bestMoves == []:
-            return randomWalk()
+            return self.randomWalk()
         else:
             return action.Move(self, rng.choice(bestMoves))
 
@@ -473,7 +474,8 @@ class Monster(Dude):
                 
                 possible_directions = ((2,0),(2,2),(0,2),(-2,2),(-2,0),(-2,-2),(0,-2),(2,-2))
                 possible_targets = [coordinates.add(self.coords, i) for i in possible_directions if self.canMove(coordinates.add(self.coords, i))]
-                actual_targets = [coords for coords in possible_targets if (coordinates.minimumPath(coords, self.currentLevel.player.coords) <= 1)]
+                close_targets = [coords for coords in possible_targets if (coordinates.minimumPath(coords, self.currentLevel.player.coords) <= 1)]
+                actual_targets = [coords for coords in close_targets if not events.isEventAtCoords(events.TimedExplosion, coords, self.currentLevel)]
                 if len(actual_targets) == 0:
                     return None
                 final_target = rng.choice(actual_targets)
