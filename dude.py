@@ -163,7 +163,18 @@ class Player(Dude):
     The player, or at least his representation in the game.
     
     There should only be one player, obviously.
+
+    Fields:
+    Dude fields are still present.
+    deck: the player's deck of cards.
+    fractional_HP: a float from 0 to 1, representing a fractional bit of HP.
+        Significant only in that when fractional_HP is high, the player will
+        soon regenerate a point of HP.
+    self.memory: a set of coordinates representing those places the player has
+        seen.
     """
+
+    REGENERATION_FACTOR = 0.01
 
     def __init__(self, name, coords, speed = 12, currentLevel = None, char_level = 1, deck = None):
         if deck is None:
@@ -182,6 +193,7 @@ class Player(Dude):
             self.__sidebar = None
 
         self.deck = deck
+        self.fractional_HP = 0.0
 
         self.memory = set()
         self.fov.updateMemory(self.memory)
@@ -215,6 +227,19 @@ class Player(Dude):
     
     def getName(self, commonNounPreceder = "the"):
         return "you"
+
+    def regenerate(self):
+        """
+        Restore a small fraction of the player's health.
+        """
+
+        true_hp = self.cur_HP + self.fractional_HP
+        true_hp += self.max_HP * self.REGENERATION_FACTOR
+        self.cur_HP = int(true_hp)
+        if self.cur_HP == self.max_HP:
+            self.fractional_HP = 0
+        else:
+            self.fractional_HP = true_hp - self.cur_HP
 
     def act(self):
         """
