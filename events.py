@@ -111,3 +111,6 @@ def isEventAtCoords(event_class, coords, level_):
             return True
 
     return False
+
+def is_grenade_at_coords(coords, level_):
+    return isEventAtCoords(TimedExplosion, coords, level_)

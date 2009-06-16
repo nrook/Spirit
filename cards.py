@@ -1,9 +1,9 @@
 import rng
 
 MON_ABILITY_DICT = {
-    "lancer" : {"code":"CRITICAL", "aname":"Damaging attack"},
-    "boxer" : {"code":"KNOCK", "aname":"Punch"},
-    "grenadier": {"code":"GRENTHROW", "aname":"Throw grenade"},
+    "lancer" : {"code":"CRITICAL", "aname":"Damaging attack", "is_melee":True, "is_directional":True,},
+    "boxer" : {"code":"KNOCK", "aname":"Punch", "is_melee":True, "is_directional":True,},
+    "grenadier": {"code":"GRENTHROW", "aname":"Throw grenade", "is_melee":False, "is_directional":True,},
 }
 
 class Deck(object):
@@ -78,9 +78,13 @@ class Card(object):
     action_code - the special code of the special ability used.
     monster_name - the name of the monster from whom the card comes.
     ability_name - the name of the special ability the Card contains.
+    is_directional - a boolean representing whether the player should specify
+        which direction the card is being used.
+    is_melee - a boolean representing whether the card is meant to be used
+        against an adjacent foe.
     """
 
-    def __init__(self, action_code, monster_name, ability_name):
+    def __init__(self, action_code, monster_name, ability_name, is_directional, is_melee):
         """
         Create a new Card, with the action code, monster name, and ability name
         specified.  For more information on these fields, see the general class
@@ -90,6 +94,8 @@ class Card(object):
         self.action_code = action_code
         self.monster_name = monster_name
         self.ability_name = ability_name
+        self.is_directional = is_directional
+        self.is_melee = is_melee
 
 def mon_card(mon):
     """
@@ -97,4 +103,4 @@ def mon_card(mon):
     """
 
     mon_attr_dict = MON_ABILITY_DICT[mon.name]
-    return Card(mon_attr_dict["code"], mon.name, mon_attr_dict["aname"])
+    return Card(mon_attr_dict["code"], mon.name, mon_attr_dict["aname"], mon_attr_dict["is_directional"], mon_attr_dict["is_melee"],)

@@ -306,19 +306,34 @@ class Player(Dude):
                     return action.DoNothing()
                 card_to_use = self.deck.hand[card_id]
 
-                direction_of_target_square = kb.direction_question(
-                    self.currentLevel.messages,
-                    "In which direction would you like to use the %s card?" % card_to_use.ability_name)
-                target_square = coordinates.add(self.coords, direction_of_target_square)
-                if target_square in self.currentLevel.dudeLayer:
-                    del self.deck.hand[card_id]
-                    return action.SpecialMelee(self,
-                        self.currentLevel.dudeLayer[target_square],
-                        card_to_use.action_code)
+# If the card is directional, get the direction to use it in.
+                if card_to_use.is_directional:
+                    direction_of_target_square = kb.direction_question(
+                        self.currentLevel.messages,
+                        "In which direction would you like to use the %s card?"
+                        % card_to_use.ability_name)
+                if card_to_use.is_melee:
+                    target_square = coordinates.add(self.coords, direction_of_target_square)
+                    if target_square in self.currentLevel.dudeLayer:
+                        del self.deck.hand[card_id]
+                        return action.SpecialMelee(self,
+                            self.currentLevel.dudeLayer[target_square],
+                            card_to_use.action_code)
+                    else:
+                        self.currentLevel.messages.say("You whiff completely!")
+                        del self.deck.hand[card_id]
+                        return action.Wait(self)
                 else:
-                    self.currentLevel.messages.say("You whiff completely!")
-                    del self.deck.hand[card_id]
-                    return action.Wait(self)
+                    if card_to_use.action_code == "GRENTHROW":
+                        target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
+                        if self.canMove(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
+                            del self.deck.hand[card_id]
+                            return action.ThrowGrenade(self, target_square, 10)
+                        else:
+                            self.currentLevel.messages.say("There's something in the way!")
+                            return action.DoNothing()
+                    assert False
+                assert False
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == "<":
         	        return action.Up()
@@ -499,8 +514,9 @@ class Monster(Dude):
                 
                 possible_directions = ((2,0),(2,2),(0,2),(-2,2),(-2,0),(-2,-2),(0,-2),(2,-2))
                 possible_targets = [coordinates.add(self.coords, i) for i in possible_directions if self.canMove(coordinates.add(self.coords, i))]
-                close_targets = [coords for coords in possible_targets if (coordinates.minimumPath(coords, self.currentLevel.player.coords) <= 1)]
-                actual_targets = [coords for coords in close_targets if not events.isEventAtCoords(events.TimedExplosion, coords, self.currentLevel)]
+                visible_targets = [coords for coords in possible_targets if coords in self.fov]
+                close_targets = [coords for coords in visible_targets if (coordinates.minimumPath(coords, self.currentLevel.player.coords) <= 1)]
+                actual_targets = [coords for coords in close_targets if not events.is_grenade_at_coords(coords, self.currentLevel)]
                 if len(actual_targets) == 0:
                     return None
                 final_target = rng.choice(actual_targets)

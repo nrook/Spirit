@@ -24,6 +24,10 @@ def subtract(coord1, coord2):
         retList.append(coord1[i] - coord2[i])
     return tuple(retList)
 
+def multiply(coord, scalar):
+    """Multiply coord by scalar."""
+    return (coord[0] * scalar, coord[1] * scalar)
+
 def addCoords(coord1, coord2):
     """Depreciated."""
     return add(coord1, coord2)
