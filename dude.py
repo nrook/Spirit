@@ -513,7 +513,7 @@ class Monster(Dude):
                 and coordinates.minimumPath(self.coords, self.currentLevel.player.coords) in range(1, 4):
                 
                 possible_directions = ((2,0),(2,2),(0,2),(-2,2),(-2,0),(-2,-2),(0,-2),(2,-2))
-                possible_targets = [coordinates.add(self.coords, i) for i in possible_directions if self.canMove(coordinates.add(self.coords, i))]
+                possible_targets = [coordinates.add(self.coords, i) for i in possible_directions if self.currentLevel.isEmpty(coordinates.add(self.coords, i))]
                 visible_targets = [coords for coords in possible_targets if coords in self.fov]
                 close_targets = [coords for coords in visible_targets if (coordinates.minimumPath(coords, self.currentLevel.player.coords) <= 1)]
                 actual_targets = [coords for coords in close_targets if not events.is_grenade_at_coords(coords, self.currentLevel)]
