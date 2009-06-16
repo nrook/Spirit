@@ -303,13 +303,19 @@ class Level(object):
         Returns false otherwise.
         """
         
-               #the given coordinates are legal
+               # the given coordinates are legal
         return (self.legalCoordinates(moveCoords) and
-               #the movedDude can move on the dungeon tile of moveCoords
-                movedDude.canPass(self.dungeonGlyph(moveCoords)) and
-               #either moveCoords is empty, or it's occupied by movedDude
+               # the movedDude can move on the dungeon tile of moveCoords
+                self.isEmpty(moveCoords) and
+               # either moveCoords is empty, or it's occupied by movedDude
                 ((moveCoords not in self.dudeLayer)
                  or self.dudeLayer[moveCoords] == movedDude))
+
+    def isEmpty(self, coords):
+        """
+        Returns true if a square contains an "empty" glyph.
+        """
+        return self.dungeonGlyph(coords) in PASSABLE_TERRAIN
     
     def legalCoordinates(self, coords):
         """

@@ -326,7 +326,7 @@ class Player(Dude):
                 else:
                     if card_to_use.action_code == "GRENTHROW":
                         target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
-                        if self.canMove(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
+                        if self.currentLevel.isEmpty(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
                             del self.deck.hand[card_id]
                             return action.ThrowGrenade(self, target_square, 10)
                         else:
