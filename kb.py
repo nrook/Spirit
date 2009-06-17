@@ -180,3 +180,10 @@ def direction_question(messages, prompt):
             "direction")
     
     return DIRECTION_SWITCH[response_key]
+
+def pause(messages):
+    """
+    Ask for a keypress, not caring what it is.
+    """
+
+    question(messages, "--MORE--")
