@@ -14,8 +14,8 @@ import effects
 
 ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
 CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
-UPSTAIRS_GLYPH = symbol.Glyph('>', (255, 0, 0))
-DOWNSTAIRS_GLYPH = symbol.Glyph('<', (0, 255, 0))
+UPSTAIRS_GLYPH = symbol.Glyph('<', (255, 0, 0))
+DOWNSTAIRS_GLYPH = symbol.Glyph('>', (0, 255, 0))
 
 OPEN_GLYPHS = set([ROOM_INTERIOR_GLYPH])
 SEMI_OPEN_GLYPHS = set([CORRIDOR_GLYPH])
