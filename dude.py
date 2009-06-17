@@ -440,16 +440,16 @@ class Monster(Dude):
         """
         Return an action representing walking in a random direction.
         """
-        while 1:
-            coords = rng.choice(coordinates.DIRECTIONS)
-            destination = coordinates.add(self.coords, coords)
-            if destination == self.currentLevel.getPlayer().coords:
-                action.Attack(self, self.currentLevel.player, 
-                        "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
-            elif self.canMove(destination):
-                return action.Move(self, coords)
-            else:
-                pass
+        possible_targets = [coordinates.add(i, self.coords) for i in coordinates.DIRECTIONS]
+        actual_targets = [i for i in possible_targets if ((self.canMove(i)) or (i == self.currentLevel.getPlayer().coords))]
+        final_target = rng.choice(actual_targets)
+        if final_target == self.currentLevel.getPlayer().coords:
+            action.Attack(self, self.currentLevel.player, 
+                    "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
+        elif self.canMove(final_target):
+            return action.Move(self, coordinates.subtract(final_target, self.coords))
+        else:
+            return action.Wait(self)
     
     def closeToPlayer(self):
         """
