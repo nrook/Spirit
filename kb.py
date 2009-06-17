@@ -187,3 +187,4 @@ def pause(messages):
     """
 
     question(messages, "--MORE--")
+    messages.archive()
