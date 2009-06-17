@@ -9,6 +9,8 @@ a dude.  This module governs the behavior of Events.
 
 import action
 import symbol
+import coordinates
+import kb
 
 class Event(object):
     """
@@ -54,8 +56,10 @@ class TimedExplosion(Event):
     """
     An Event which will set off an Explode action in a certain number of rounds.
     """
-    
-    EXPLOSION_GLYPH = symbol.Glyph('o', (65, 255, 0))
+    GRENADE_GLYPHS = {2 : symbol.Glyph('o', (65, 255, 0)),
+                      1 : symbol.Glyph('o', (255, 255, 0)),
+                      0 : symbol.Glyph('o', (255, 65, 0)),}
+    EXPLOSION_GLYPH = symbol.Glyph('#', (255, 0, 0))
 
     def __init__(self, currentLevel, coords, damage, time):
         """
@@ -73,7 +77,7 @@ class TimedExplosion(Event):
         self.explode_action = action.Explode(currentLevel, coords, damage)
         self.time = time
         self.coords = coords
-        currentLevel.addSolidEffect(self.EXPLOSION_GLYPH, coords)
+        currentLevel.addSolidEffect(self.GRENADE_GLYPHS[time], coords)
 
     def act(self):
         """
@@ -85,12 +89,27 @@ class TimedExplosion(Event):
             # Explode.
             self.currentLevel.messages.append("The grenade goes off!")
             self.explode_action.do()
-            self.currentLevel.removeSolidEffect(self.coords)
+            self.currentLevel.removeSolidEffect(self.coords, self.GRENADE_GLYPHS[0])
+            self.showExplosion()
             self.die()
         else:
             self.time -= 1
+            self.currentLevel.removeSolidEffect(self.coords, self.GRENADE_GLYPHS[self.time+1])
+            self.currentLevel.addSolidEffect(self.GRENADE_GLYPHS[self.time], self.coords)
 
         return True
+
+    def showExplosion(self):
+        """
+        Cause the explosion effect to appear onscreen.
+        """
+
+        coords_in_explosion = coordinates.radius(1, self.coords, self.currentLevel.dimensions)
+        for i in coords_in_explosion:
+            self.currentLevel.addSolidEffect(self.EXPLOSION_GLYPH, i)
+        kb.pause(self.currentLevel.messages)
+        for i in coords_in_explosion:
+            self.currentLevel.removeSolidEffect(i)
 
 def isEventAtCoords(event_class, coords, level_):
     """

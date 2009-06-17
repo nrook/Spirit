@@ -10,6 +10,7 @@ import log
 import msg
 import symbol
 import events
+import effects
 
 ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
 CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
@@ -27,7 +28,7 @@ class Level(object):
     A Level consists of a list of Layers, and a Dungeon at the bottom.
     
     Fields:
-    solidEffects - a glyphMap containing effects to be displayed over the Level.
+    effects - an effectsMap containing the effects to be laid over the level.
     dudeLayer - the Layer containing Dudes and, of course, the player.
     elements - an array of characters containing terrain features which
         exist on top of ordinary terrain, like stairs.
@@ -78,7 +79,7 @@ class Level(object):
         self.elements = elements
         self.dimensions = dimensions
         self.dudeLayer = dude_layer
-        self.solidEffects = symbol.glyphMap(dimensions)
+        self.effects = effects.effectsMap(dimensions)
         self.player = None
         self.messages = msg.MessageBuffer(config.MESSAGES_DIMENSIONS)
         self.__composite_map = arrays.empty_str_array(dimensions)
@@ -93,15 +94,16 @@ class Level(object):
     def __addCharacterToMap(self, glyph, coords, height):
         """
         Add a glyph to the composite and height maps.
+
+        glyph - the glyph to be added to the maps.
+        coords - the coordinates at which the glyph is to be added.
+        height - the height at which the glyph is to be added.
         """
 
         if not self.__are_maps_correct: return
-        assert height != self.__height_map[coords], \
-            "'%s' is blocked by '%s': attempted to place at same height, %d." \
-            % (glyph, self.__composite_map, height)
 
 # Remember that small height means being near the top.
-        if height < self.__height_map[coords]:
+        if height <= self.__height_map[coords]:
             self.__composite_map[coords] = glyph
             self.__height_map[coords] = height
 
@@ -139,7 +141,7 @@ class Level(object):
         """
         
         if height < self.__SOLID_EFFECTS_HEIGHT:
-            glyph = self.solidEffects[coords]
+            glyph = self.effects.get(coords)
             if glyph != config.TRANSPARENT_GLYPH:
                 return (glyph, self.__SOLID_EFFECTS_HEIGHT)
         if height < self.__DUDE_HEIGHT:
@@ -278,24 +280,27 @@ class Level(object):
         coords - the coordinates at which the glyph should be displayed.
         """
         
-        if coords in self.solidEffects:
-            raise ValueError("There is already a solid effect, %s, at %s."
-                % (self.solidEffects[coords], coords))
-        self.solidEffects[coords] = glyph
+        self.effects.add(coords, glyph)
         self.__addCharacterToMap(glyph, coords, self.__SOLID_EFFECTS_HEIGHT)
 
-    def removeSolidEffect(self, coords):
+    def removeSolidEffect(self, coords, glyph = None):
         """
         Remove a glyph from the level's solid effects map.
 
         coords - the coords at which the glyph should be removed.
+        glyph - the glyph to be removed.  If no glyph is supplied, then the top
+            glyph is removed.
         """
+        
+        removed = self.effects.remove(coords, glyph)
+        new_top = self.effects.get(coords)
+        if new_top == config.TRANSPARENT_GLYPH:
+            self.__delCharacterFromMap(coords, self.__SOLID_EFFECTS_HEIGHT)
+        elif new_top == removed:
+            pass
+        else:
+            self.__addCharacterToMap(new_top, coords, self.__SOLID_EFFECTS_HEIGHT)
 
-        if coords not in self.solidEffects:
-            raise ValueError("There is no solid effect at %s." % coords)
-        self.__delCharacterFromMap(coords, self.__SOLID_EFFECTS_HEIGHT)
-        del self.solidEffects[coords]
-    
     def canMove(self, movedDude, moveCoords):
         """
         Returns true if a move by movedDude to moveCoords is possible.
