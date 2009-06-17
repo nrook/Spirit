@@ -335,7 +335,7 @@ class Player(Dude):
                     assert False
                 assert False
             elif key == kp.UP:
-                if self.currentLevel.elements[self.coords] == "<":
+                if self.currentLevel.elements[self.coords] == level.UPSTAIRS_GLYPH:
         	        return action.Up()
 
     def obtainCard(self, mon):
