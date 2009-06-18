@@ -57,6 +57,7 @@ def main(win = None):
             new_floor = curlev.floor + 1
             curlev = mapgen.randomLevel(new_floor, player, mainMonsterFactory, new_floor)
             curlev.player.levelUp()
+            curlev.player.clearMemory()
             curlev.messages.append("Welcome to the next floor!")
 
 def entry():

@@ -374,6 +374,14 @@ class Player(Dude):
         self.fov.recalculate(self.currentLevel, self.coords)
         self.fov.updateMemory(self.memory)
 
+    def clearMemory(self):
+        """
+        Clear the player's memory; appropriate when the player is going to a
+        new level.
+        """
+
+        self.memory = set()
+
 class Monster(Dude):
     """
     A dude not controlled by the player.  Typically an antagonist.
