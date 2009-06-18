@@ -214,7 +214,11 @@ def getMonsterFactory(linelist, initline = 0):
         except ValueError:
             break
         else:
-            retFactory.append(getMonster(linelist, curline))
+            new_monster = getMonster(linelist, curline)
+            if "bug_monster" in new_monster.tags:
+                retFactory.setBuggyMonster(new_monster)
+            else:
+                retFactory.append(getMonster(linelist, curline))
             curline += 1
     
     return retFactory

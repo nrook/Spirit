@@ -35,7 +35,7 @@ def main(win = None):
         curlev = save[0]
     elif LOAD_FROM_RANDOM_DUNGEON:
         player = dude.Player("John Stenibeck", (40, 40))
-        curlev = mapgen.randomLevel(1, player, mainMonsterFactory)
+        curlev = mapgen.randomLevel(1, player, mainMonsterFactory, 1)
     else:
         floorlinelist = fileio.getFile("floors.dat")
         curlev = fileio.getFloor(floorlinelist, 0, mainMonsterFactory)
@@ -55,7 +55,7 @@ def main(win = None):
         except exc.LevelChange:
             saved_player = curlev.player
             new_floor = curlev.floor + 1
-            curlev = mapgen.randomLevel(new_floor, player, mainMonsterFactory)
+            curlev = mapgen.randomLevel(new_floor, player, mainMonsterFactory, new_floor)
             curlev.player.levelUp()
             curlev.messages.append("Welcome to the next floor!")
 

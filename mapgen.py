@@ -180,7 +180,7 @@ def make_corridor(dungeon, start_coords, end_coords):
         if dungeon[current_coords] == config.TRANSPARENT_GLYPH:
             dungeon[current_coords] = level.CORRIDOR_GLYPH
 
-def populate_level(pop_level, monster_fact):
+def populate_level(pop_level, monster_fact, dlvl):
     """
     Populate a given level with monsters.
     """
@@ -191,7 +191,7 @@ def populate_level(pop_level, monster_fact):
     level_secorner = [dim - 1 for dim in pop_level.dimensions]
 
     for i in range(NUMBER_OF_MONSTERS):
-        monster_to_be_made = monster_fact.getRandomMonster()
+        monster_to_be_made = monster_fact.getRandomMonster(dlvl)
         monster_has_been_created = False
         while not monster_has_been_created:
             monster_coords = rng.randomPointInRect(level_nwcorner, level_secorner)
@@ -201,7 +201,7 @@ def populate_level(pop_level, monster_fact):
                 pop_level.addDude(monster_to_be_made, monster_coords)
                 monster_has_been_created = True
 
-def randomLevel(floor, player, monster_fact):
+def randomLevel(floor, player, monster_fact, dlvl):
     """
     If no player is supplied, the player slot is just left empty.
     """
@@ -224,7 +224,7 @@ def randomLevel(floor, player, monster_fact):
     if player is not None:
         ret_level.addPlayer(player, entrance_coords)
     
-    populate_level(ret_level, monster_fact)
+    populate_level(ret_level, monster_fact, dlvl)
 
     return ret_level
     

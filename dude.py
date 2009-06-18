@@ -6,6 +6,7 @@ All players and monsters should be derived from Dude.
 
 import sys
 import copy
+import collections
 
 import tcod_display as display
 import exc
@@ -53,6 +54,10 @@ I will probably ignore this whole comment.
 """
 Legal monster tags:
 "proper_noun": this monster's name is a proper noun.
+"two_square_thrower": this monster has a projectile thrown two squares forward
+    onto an empty or occupied space.
+"bug_monster": this monster should only be generated when a bug has occurred
+    (i.e. there is no "real" monster available).
 """
 
 PLAYER_GLYPH = symbol.Glyph('@', (255, 255, 255))
@@ -442,6 +447,8 @@ class Monster(Dude):
         """
         possible_targets = [coordinates.add(i, self.coords) for i in coordinates.DIRECTIONS]
         actual_targets = [i for i in possible_targets if ((self.canMove(i)) or (i == self.currentLevel.getPlayer().coords))]
+        if len(actual_targets) == None:
+            return action.Wait(self)
         final_target = rng.choice(actual_targets)
         if final_target == self.currentLevel.getPlayer().coords:
             action.Attack(self, self.currentLevel.player, 
@@ -449,7 +456,7 @@ class Monster(Dude):
         elif self.canMove(final_target):
             return action.Move(self, coordinates.subtract(final_target, self.coords))
         else:
-            return action.Wait(self)
+            assert False
     
     def closeToPlayer(self):
         """
@@ -536,16 +543,60 @@ class MonsterFactory(list):
     Getting a monster from this factory with [] gives you a duplicate.
     """
     
-#    def __init__(self, *args, **kwds):
-#        return list.__init__(self, *args, **kwds)
+# Represents the chances of finding a monster, relative to the difference
+# between that monster's level and the dlvl it is found on.
+    DLVL_RARITY = collections.defaultdict(lambda: 0,
+                  {-2:1,
+                   -1:3,
+                    0:5,
+                    1:3,
+                    2:1,
+                  })
+    
+    def __init__(self, *args, **kwds):
+        """
+        Create a new MonsterFactory, given a list of monsters (or nothing).
+        """
+        list.__init__(self, *args, **kwds)
+        self.buggy_monster = None
 
-    def getRandomMonster(self):
+    def getRandomMonster(self, dlvl):
         """
         Get a duplicate of a random monster in the MonsterFactory.
         """
+        
+        monster_selection_container, total = self.getMonsterSelection(dlvl)
+        if total == 0 or len(monster_selection_container) == 0:
+            return self.getBuggyMonster()
 
-        prototype = rng.choice(self)
-        return duplicate(prototype)
+        random_number = rng.randInt(0, total - 1)
+        for i in monster_selection_container:
+            random_number -= i[0]
+            if random_number < 0:
+                return duplicate(i[1])
+
+    def getMonsterSelection(self, dlvl):
+        """
+        Return a container representing the rarity of monsters on a level.
+
+        dlvl - the level of the dungeon on which the monsters are appearing.
+
+        returns - a tuple of the form
+            ([(rarity_1, monster_1), ..., (rarity_k, monster_k)], total).
+            rarity_x is an integer representing the chance that a monster
+            will appear; higher is more likely.  total is the total rarity
+            of all the monsters involved.
+        """
+
+        total = 0
+        selection_list = []
+        for i in self:
+            rarity = self.DLVL_RARITY[i.char_level - dlvl]
+            if rarity != 0:
+                selection_list.append((rarity, i))
+                total += rarity
+
+        return (selection_list, total)
     
     def create(self, key, coords = None, currentLevel = None):
         """
@@ -573,6 +624,20 @@ class MonsterFactory(list):
                 raise ValueError("No monster with name %s found." % key)
             else:
                 return list.__getitem__(self, soughtIndex)
+
+    def setBuggyMonster(self, buggy_monster):
+        """
+        Set the monster created when no valid monster data is available.
+        """
+
+        self.buggy_monster = buggy_monster
+
+    def getBuggyMonster(self):
+        """
+        Get a copy of the monster created when no valid monster data is present.
+        """
+
+        return duplicate(self.buggy_monster)
     
 class Sidebar(object):
     """
