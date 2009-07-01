@@ -309,12 +309,25 @@ class Level(object):
         """
         
                # the given coordinates are legal
-        return (self.legalCoordinates(moveCoords) and
+        result = (self.legalCoordinates(moveCoords) and
                # the movedDude can move on the dungeon tile of moveCoords
                 self.isEmpty(moveCoords) and
                # either moveCoords is empty, or it's occupied by movedDude
                 ((moveCoords not in self.dudeLayer)
-                 or self.dudeLayer[moveCoords] == movedDude))
+                 or self.dudeLayer[moveCoords] == movedDude) and
+               # moveCoords is only one square away
+                (coordinates.minimumPath(movedDude.coords, moveCoords) == 1))
+
+        # a "corner move," of the following form, is NOT being performed
+        # d.      (moving from s to d)
+        # #s
+
+        if coordinates.are_diagonally_adjacent(movedDude.coords, moveCoords):
+            adjacent_squares = ((movedDude.coords[0], moveCoords[1]), (moveCoords[0], movedDude.coords[1]))
+# Return true only if both adjacent squares are empty, i.e. disallow corner moves.
+            result = result and all(map(lambda x: self.isEmpty(x), adjacent_squares))
+        
+        return result
 
     def isEmpty(self, coords):
         """

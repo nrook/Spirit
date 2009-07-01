@@ -97,6 +97,13 @@ def distance(coord1, coord2):
     distance **= 0.5
     return distance
 
+def are_diagonally_adjacent(coord1, coord2):
+    """
+    Return True if coord1 and coord2 are diagonally adjacent, false otherwise.
+    """
+
+    return (abs(coord1[0] - coord2[0]) == 1 and abs(coord1[1] - coord2[1]) == 1)
+
 def minimumPath(coord1, coord2):
     """
     Return the minimum number of steps required to connect two coordinates.

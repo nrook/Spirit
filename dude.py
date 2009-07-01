@@ -186,6 +186,8 @@ class Player(Dude):
             deck = cards.Deck()
 
         max_HP = 24 + 6 * char_level
+        if config.WIZARD:
+            max_HP += 200
 
         Dude.__init__(self, coords, PLAYER_GLYPH, speed, max_HP, currentLevel, name, 40, 100, ["proper_noun"], char_level)
 
@@ -283,8 +285,10 @@ class Player(Dude):
     def getAction(self):
         while 1:
             key = kb.getKey()
+# If the key is the quit key, quit.
             if key == kp.QUIT:
                 sys.exit(0)
+# If the key is the save key, ask if the player wants to save, and do so.
             elif key == kp.SAVE:
                 decision = kb.boolean_question(self.currentLevel.messages,
                     "Do you really want to save and quit the game?")
@@ -294,8 +298,10 @@ class Player(Dude):
                 else:
                     self.currentLevel.messages.say("Never mind, then.")
                     return action.DoNothing()
+# If the key is the wait key, wait.
             elif key == kp.WAIT:
                 return action.Wait(self)
+# If the key is a movement key, move or attack, as is appropriate.
             elif key in config.DIRECTION_SWITCH:
                 target = coordinates.add(self.coords,
                                          config.DIRECTION_SWITCH[key])
@@ -304,6 +310,7 @@ class Player(Dude):
                                          self.currentLevel.dudeLayer[target])
                 else:
                     return action.Move(self, config.DIRECTION_SWITCH[key])
+# If the key is a card key, use the card.
             elif key in kb.card_values:
                 card_id = kb.card_values[key]
                 
@@ -339,6 +346,7 @@ class Player(Dude):
                             return action.DoNothing()
                     assert False
                 assert False
+# If the key is the "go upstairs" key, try to go up a level.
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == level.UPSTAIRS_GLYPH:
         	        return action.Up()
