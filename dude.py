@@ -22,6 +22,7 @@ import fileio
 import cards
 import fov
 import events
+import pf
 import kb
 kp = kb.kp
 
@@ -61,6 +62,17 @@ Legal monster tags:
 """
 
 PLAYER_GLYPH = symbol.Glyph('@', (255, 255, 255))
+
+class ais:
+    """
+    A glorified enum of AI states.
+    """
+
+    (FIGHTING,  # The monster sees an enemy.
+     TRAVELING, # The monster is traveling to a specific square.
+     WANDERING, # The monster is moving, but not to a specific square.
+     RESTING,   # The monster is not moving.
+     ) = range(4)
 
 class Dude(fixedobj.FixedObject):
     """
@@ -125,6 +137,14 @@ class Dude(fixedobj.FixedObject):
         """
         
         return self.currentLevel.canMove(self, moveCoords)
+
+    def possibleMoves(self):
+        """
+        Return a list of the possible moves from the current location.
+        """
+
+        adjacent_coords = coordinates.adjacent_coords(self.coords)
+        return [x for x in adjacent_coords if self.canMove(x)]
     
     def canPass(self, dungeonGlyph):
         return dungeonGlyph in self.passableTerrain
@@ -402,7 +422,7 @@ class Monster(Dude):
         coords - the coordinates at which the monster currently is.
             (5, 9), for instance.
         glyph - a one-character string representing the monster, like "d".
-        AICode - a string representing the Monster's AI - "RANDOM", "CLOSE" etc.
+        AICode - a string representing the Monster's AI - "CLOSE", etc.
         speed - just set this to 12 for now.
         max_HP - the maximum (and starting) HP of the monster.
         tags - any special qualities the monster has.
@@ -424,71 +444,178 @@ class Monster(Dude):
             attack, defense, tags, char_level)
         
         self.AICode = AICode
+        self.state = ais.RESTING
+        self.player_last_location = None
         self.spec = spec
         self.specfreq = specfreq
     
     def act(self):
         """
-        Take a turn or do interface things, depending on what the player wants.
+        Asks the monster to take a turn.
 
-        Returns: True if the player has taken a turn; False otherwise.
+        Returns: True is the monster has taken a turn via this call,
+            False otherwise.
         """
         self.resetFOV()
         cur_action = self.getAction()
 
         return cur_action.do()
 
-        assert False, "An unexpected action was returned."
-
     def getAction(self):
         """
         Calculate the action of a monster.  AI code goes here!
         """
         
-        if self.AICode == "RANDOM":
-            return self.randomWalk()
-                
-        elif self.AICode == "CLOSE":
-            return self.closeToPlayer()
+        if self.state == ais.FIGHTING:
+            return self.fighting()
+        elif self.state == ais.TRAVELING:
+            return self.traveling()
+        elif self.state == ais.WANDERING:
+            return self.wandering()
+        elif self.state == ais.RESTING:
+            return self.resting()
+        else:
+            assert False, "This monster has some strange, unknown AI state!"
 
-        elif self.AICode == "RANGEDAPPROACH":
-            return self.rangedApproach()
+    def fighting(self):
+        """
+        Calculate the action of a monster who sees the player.
+        """
+        
+        if self.currentLevel.player not in self.fov:
+            if self.player_last_location is not None:
+# The player has escaped!  Find a likely square where he could have gone.
+                adjacent_coords = coordinates.adjacent_coords(self.player_last_location)
+                legal_coords = [i for i in adjacent_coords if coordinates.legal(i, self.currentLevel.dimensions)]
+                passable_coords = [i for i in legal_coords if self.currentLevel.isEmpty(i)]
+                out_of_vision_coords = [i for i in passable_coords if i not in self.fov]
+
+                if len(out_of_vision_coords) > 0:
+# There is a possible escape route!  Pursue!
+                    self.direction = coordinates.subtract(rng.choice(out_of_vision_coords), self.player_last_location)
+                    self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.player_last_location)
+                    if self.path == []:
+# There is no route to the player's escape route.  Wait, but stay in
+# state FIGHTING so as to take advantage of any route that opens up.
+                        return action.Wait(self)
+                    self.state = ais.TRAVELING
+                    return self.traveling()
+
+            else:
+                assert False
+
+        else:
+            self.player_last_location = self.currentLevel.player.coords
+
+            if self.AICode == "CLOSE":
+                return self.closeToPlayer()
+
+            elif self.AICode == "RANGEDAPPROACH":
+                return self.rangedApproach()
             
+            else:
+                raise exc.InvalidDataWarning(
+                    "The monster %s has an unknown AICode, %s"
+                    % (self.name, self.AICode))
+                return action.Wait(self)
+
+        assert False
+
+    def traveling(self):
+        """
+        Calculate the action of a monster moving to a specific location.
+
+        Note that a "path" variable must exist for this to make sense.
+        """
+
+# self.path[0] should be the monster's current square.
+# self.path[1] should be the square the monster wants to move to.
+# self.path[-1] should be the monster's ultimate destination.
+
+        assert self.path != None, "Despite the monster being in state TRAVELING, the path variable is null."
+
+# The path may be overwritten, so make sure the destination isn't lost.
+        destination = self.path[-1]
+        
+        if self.currentLevel.player in self.fov:
+            self.state = ais.FIGHTING
+            return self.fighting()
+        else:
+            if self.coords != self.path[0]:
+# Something has moved the monster since its last turn.  The path is no longer
+# valid.
+                self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
+            
+            if len(self.path) == 1:
+                if self.coords == self.path[0]:
+# The monster has reached its destination!
+                    self.state = ais.WANDERING
+                    return self.wandering()
+                else:
+# The monster had reached its destination, then something moved it.
+                    self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
+
+            if not len(self.path) > 1 and self.currentLevel.canMove(self, self.path[1]):
+# Something is blocking the path.  The path is no longer valid.
+                self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
+
+            if len(self.path) == 0:
+# HACK: Set the path to only contain the destination, so that next turn the
+# monster assumes it's been pushed off this path and tries to find another.
+                self.path = [destination]
+                return action.Wait(self)           
+
+            move_direction = coordinates.subtract(self.path[1], self.path[0])
+            self.path.pop(0)
+            return action.Move(self, move_direction)
+
+        assert False
+
+    def wandering(self):
+        """
+        Calculate the action of a monster without a specific goal in mind.
+        """
+
+        if self.currentLevel.player in self.fov:
+            self.state = ais.FIGHTING
+            return self.fighting()
+
+        assert self.direction is not None
+
+        ordered_moves = coordinates.adjacent_coords_sorted(self.coords, self.direction)
+        possible_moves = [x for x in ordered_moves if self.currentLevel.canMove(self, x)]
+        if len(possible_moves) == 0:
+# You're stuck!  Give up, just rest there.
+            self.state = ais.RESTING
+            return self.resting()
+        else:
+            move_coords = possible_moves[0]
+            self.direction = coordinates.subtract(move_coords, self.coords)
+            return action.Move(self, coordinates.subtract(move_coords, self.coords))
+
+        assert False
+
+    def resting(self):
+        """
+        Return the action of a monster who is just sitting there, doing nothing.
+        """
+
+        if self.currentLevel.player in self.fov:
+            self.state = ais.FIGHTING
+            return self.fighting()
         else:
             return action.Wait(self)
 
-    def randomWalk(self):
-        """
-        Return an action representing walking in a random direction.
-        """
-        possible_targets = [coordinates.add(i, self.coords) for i in coordinates.DIRECTIONS]
-        actual_targets = [i for i in possible_targets if ((self.canMove(i)) or (i == self.currentLevel.getPlayer().coords))]
-        if len(actual_targets) == None:
-            return action.Wait(self)
-        final_target = rng.choice(actual_targets)
-        if final_target == self.currentLevel.getPlayer().coords:
-            action.Attack(self, self.currentLevel.player, 
-                    "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
-        elif self.canMove(final_target):
-            return action.Move(self, coordinates.subtract(final_target, self.coords))
-        else:
-            assert False
-    
+
     def closeToPlayer(self):
         """
-        If the player is in sight, close in on him, and attack him if possible.
-        
-        If the player is not in sight, move randomly.
-        This function returns an Action representing doing this.
+        Pathfind to the player, and attack him if possible.
         """
-        playerLocation = self.currentLevel.getPlayer().coords
 
-# If you can't see the player, move randomly.
-        if self.currentLevel.getPlayer() not in self.fov.dudes:
-            return self.randomWalk()
+        player_location = self.currentLevel.player.coords
 
-# If next to the player, attack him.
-        if coordinates.adjacent(playerLocation, self.coords):
+# If adjacent to the player, attack him.
+        if coordinates.adjacent(player_location, self.coords):
             if rng.percentChance(self.specfreq):
                 return action.SpecialMelee(self,
                         self.currentLevel.player,
@@ -496,28 +623,15 @@ class Monster(Dude):
             else:
                 return action.Attack(self, self.currentLevel.player, 
                     "%(SOURCE_NAME)s attacks %(TARGET_NAME)s! (%(DAMAGE)d)")
-            
-        bestMoves = []
-        bestDistance = coordinates.distance(playerLocation, self.coords)            
-        for possibleMove in coordinates.getDirections():
-            destination = coordinates.add(self.coords, possibleMove)
-            currentDistance = coordinates.distance(
-                              playerLocation,
-                              destination)
-            if currentDistance == bestDistance and \
-               self.canMove(destination):
-                   
-                bestMoves.append(possibleMove)
-            elif currentDistance < bestDistance and \
-               self.canMove(destination):
-                
-                bestMoves = [possibleMove]
-                bestDistance = currentDistance
-            
-        if bestMoves == []:
-            return self.randomWalk()
+
+# Otherwise, pathfind toward him.
         else:
-            return action.Move(self, rng.choice(bestMoves))
+            path = pf.find_shortest_path(self.currentLevel, self.coords, player_location)
+            if path != []:
+                move_coords = coordinates.subtract(path[1], path[0])
+                return action.Move(self, move_coords)
+            else:
+                return action.Wait(self)
 
     def rangedApproach(self):
         ranged_attack = self.probableRangedAttack()

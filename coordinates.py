@@ -58,6 +58,31 @@ def adjacent_coords(coord):
 
     return [(coord[0] + i[0], coord[1] + i[1]) for i in DIRECTIONS]
 
+def adjacent_coords_sorted(coord, primary_direction):
+    """
+    Return a tuple of the eight coordinates adjacent to the coordinate given.
+
+    coord - a coordinate
+    primary_direction - a "unit vector" ((1,0), (-1,1), etc.)
+
+    Returns: The eight coordinates adjacent to coord, so that the coordinate in
+        primary_direction is listed first, then the rest of the coordinates, in
+        order of their proximity to the one in primary_direction.
+    """
+
+    def sorting_function(x, y):
+        (d_x, d_y) = (distance(primary_coordinate, x), distance(primary_coordinate, y))
+        if d_x < d_y:
+            return -1
+        elif d_x == d_y:
+            return 0
+        else:
+            return 1
+
+    primary_coordinate = add(coord, primary_direction)
+    adjacents = adjacent_coords(coord)
+    return sorted(adjacents, sorting_function)
+
 def radius(rad, coords, dimensions = None):
     """
     Return a set containing those coordinates rad away from a square.

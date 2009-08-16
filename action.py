@@ -112,7 +112,7 @@ class Move(Action):
             self.source.currentLevel.moveDude(self.source, destination_coords)
             return True
         else:
-            return False
+            assert False
 
 class Up(Action):
     """

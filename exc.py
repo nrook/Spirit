@@ -20,6 +20,11 @@ class InvalidDataWarning(RuntimeWarning):
     "NONE" special ability.
     """
 
+class PathfindingError(StandardError):
+    """
+    Raised when a pathfinding routine fails in some way.
+    """
+
 def check_in_array(coord, shape, name = "The coordinates"):
     """
     Raise a ValueError if coord lies outside the array whose shape is shape.

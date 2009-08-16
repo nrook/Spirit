@@ -301,40 +301,60 @@ class Level(object):
         else:
             self.__addCharacterToMap(new_top, coords, self.__SOLID_EFFECTS_HEIGHT)
 
+    def are_immediately_accessible(self, coords1, coords2):
+        """
+        Returns true if a move from coords1 to coords2 is legal given the
+        dungeon layout, false otherwise.
+
+        This function does not take into account monsters on either square.
+        """
+
+               # the given coordinates are legal
+        result = (all(map(self.legalCoordinates, (coords1, coords2))) and
+               # the movedDude can move on the dungeon tile of moveCoords
+                all(map(self.isEmpty, (coords1, coords2))) and
+               # moveCoords is only one square away
+                (coordinates.minimumPath(coords1, coords2) == 1))
+
+        # a "corner move," of the following form, is NOT being performed
+        # d.      (moving from s to d)
+        # #s
+
+        if coordinates.are_diagonally_adjacent(coords1, coords2):
+            adjacent_squares = ((coords1[0], coords2[1]), (coords2[0], coords1[1]))
+# Return true only if both adjacent squares are empty, i.e. disallow corner moves.
+            result = result and all(map(lambda x: self.isEmpty(x), adjacent_squares))
+        
+        return result
+
     def canMove(self, movedDude, moveCoords):
         """
         Returns true if a move by movedDude to moveCoords is possible.
         
         Returns false otherwise.
         """
-        
-               # the given coordinates are legal
-        result = (self.legalCoordinates(moveCoords) and
-               # the movedDude can move on the dungeon tile of moveCoords
-                self.isEmpty(moveCoords) and
-               # either moveCoords is empty, or it's occupied by movedDude
-                ((moveCoords not in self.dudeLayer)
-                 or self.dudeLayer[moveCoords] == movedDude) and
-               # moveCoords is only one square away
-                (coordinates.minimumPath(movedDude.coords, moveCoords) == 1))
 
-        # a "corner move," of the following form, is NOT being performed
-        # d.      (moving from s to d)
-        # #s
-
-        if coordinates.are_diagonally_adjacent(movedDude.coords, moveCoords):
-            adjacent_squares = ((movedDude.coords[0], moveCoords[1]), (moveCoords[0], movedDude.coords[1]))
-# Return true only if both adjacent squares are empty, i.e. disallow corner moves.
-            result = result and all(map(lambda x: self.isEmpty(x), adjacent_squares))
-        
-        return result
+        return (self.are_immediately_accessible(movedDude.coords, moveCoords)
+# either moveCoords is empty, or it's occupied by movedDude
+               and ((moveCoords not in self.dudeLayer) or (self.dudeLayer[moveCoords] == movedDude)))
 
     def isEmpty(self, coords):
         """
         Returns true if a square contains an "empty" glyph.
         """
         return self.dungeonGlyph(coords) in PASSABLE_TERRAIN
-    
+
+    def immediately_accessible_squares(self, coords):
+        """
+        Returns a list of the squares walkable from the square at coords.
+
+        This function does not take into account monsters present at the source
+        or destination squares.
+        """
+
+        adjacent_coords = coordinates.adjacent_coords(coords)
+        return [x for x in adjacent_coords if self.are_immediately_accessible(coords, x)]
+
     def legalCoordinates(self, coords):
         """
         Returns True if coords is a set of coordinates inside this Level.
