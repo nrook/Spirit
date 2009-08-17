@@ -1,7 +1,7 @@
 <MONSTER>
 name=boxer
 glyph=b
-hp=7
+hp=10
 atk=15
 def=100
 speed=12
@@ -57,7 +57,7 @@ atk=13
 def=120
 speed=12
 ai=RANGEDAPPROACH
-level=1
+level=4
 r=255
 g=255
 b=255

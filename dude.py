@@ -299,7 +299,6 @@ class Player(Dude):
 # loop.
             raise exc.LevelChange()
         
-# This used to be a call to do_generic_action.  I'm not sure why.
         return cur_action.do()
     
     def getAction(self):
