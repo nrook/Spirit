@@ -77,7 +77,7 @@ class TimedExplosion(Event):
         self.explode_action = action.Explode(currentLevel, coords, damage)
         self.time = time
         self.coords = coords
-        currentLevel.addSolidEffect(self.GRENADE_GLYPHS[time], coords)
+        currentLevel.addSolidEffect(coords, self.GRENADE_GLYPHS[time])
 
     def act(self):
         """
@@ -95,7 +95,7 @@ class TimedExplosion(Event):
         else:
             self.time -= 1
             self.currentLevel.removeSolidEffect(self.coords, self.GRENADE_GLYPHS[self.time+1])
-            self.currentLevel.addSolidEffect(self.GRENADE_GLYPHS[self.time], self.coords)
+            self.currentLevel.addSolidEffect(self.coords, self.GRENADE_GLYPHS[self.time])
 
         return True
 
@@ -106,7 +106,7 @@ class TimedExplosion(Event):
 
         coords_in_explosion = coordinates.radius(1, self.coords, self.currentLevel.dimensions)
         for i in coords_in_explosion:
-            self.currentLevel.addSolidEffect(self.EXPLOSION_GLYPH, i)
+            self.currentLevel.addSolidEffect(i, self.EXPLOSION_GLYPH)
         kb.pause(self.currentLevel.messages)
         for i in coords_in_explosion:
             self.currentLevel.removeSolidEffect(i)

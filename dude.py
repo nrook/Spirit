@@ -364,6 +364,8 @@ class Player(Dude):
                         else:
                             self.currentLevel.messages.say("There's something in the way!")
                             return action.DoNothing()
+                    elif card_to_use.action_code == "ARROW":
+                        return action.FireArrow(self, direction_of_target_square, 12)
                     assert False
                 assert False
 # If the key is the "go upstairs" key, try to go up a level.
@@ -658,6 +660,18 @@ class Monster(Dude):
                     return None
                 final_target = rng.choice(actual_targets)
                 return action.ThrowGrenade(self, final_target, 10)
+            else:
+                return None
+        elif "twelve_square_firer" in self.tags:
+            direction = coordinates.get_cardinal_direction(self.coords,
+                          self.currentLevel.player.coords)
+            dist = coordinates.minimumPath(self.coords,
+                   self.currentLevel.player.coords)
+            if self.currentLevel.player in self.fov \
+                and direction is not None \
+                and dist < 12:
+
+                return action.FireArrow(self, direction, 12)
             else:
                 return None
         else:

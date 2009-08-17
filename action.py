@@ -16,6 +16,7 @@ Stand still: WAIT
 Standard attack: STDATK
 Special melee attack: SPMELEE
 Explode: EXPLODE
+Fire an arrow: ARROW
 Go upstairs: UP
 """
 
@@ -34,10 +35,13 @@ import rng
 import events
 import tcod_display as display
 import exc
+import symbol
 
 CRIT_MULTIPLIER = 2
 KNOCK_DAMAGE = 5
 KNOCK_DISTANCE = 10
+
+ARROW_GLYPH = symbol.Glyph('`', (255, 255, 255))
 
 class Action(object):
     """
@@ -227,6 +231,62 @@ class Explode(Action):
                 self.level_.messages.append("%s is hurt by the explosion! (%d)" %
                     (target.getName(), self.damage))
                 target.checkDeath()
+
+        return True
+
+class FireArrow(Action):
+    """
+    An action representing an arrow being fired in a direction, dealing damage
+    equivalent to that of a physical attack.
+    """
+
+    def __init__(self, source, direction, distance):
+        """
+        Initialize an arrow-firing Action.
+        
+        source - the dude firing the arrow.
+        direction - the direction in which the arrow is fired.
+        distance - the maximum range the arrow can fly.
+        """
+        Action.__init__(self, "ARROW", "%s shot an arrow!" % source.getName())
+        self.source = source
+        self.direction = direction
+        self.distance = distance
+
+    def do(self):
+        current_location = self.source.coords
+        self.source.currentLevel.addSolidEffect(current_location, ARROW_GLYPH)
+        self.source.currentLevel.messages.append(
+            self.message % {"SOURCE_NAME": self.source.getName()})
+
+        i = 0
+        while True:
+            i += 1
+            display.refresh_screen()
+            self.source.currentLevel.removeSolidEffect(current_location, ARROW_GLYPH)
+            current_location = coordinates.add(current_location, self.direction)
+            self.source.currentLevel.addSolidEffect(current_location, ARROW_GLYPH)
+
+            if not self.source.currentLevel.isEmpty(current_location):
+                break # If the arrow runs into a wall, just stop.
+            elif current_location in self.source.currentLevel.dudeLayer:
+                # The arrow hit a dude!
+                target = self.source.currentLevel.dudeLayer[current_location]
+                damage_dealt = damage(self.source.attack, target.defense,
+                               self.source.char_level, target.char_level)
+                self.source.currentLevel.messages.append(
+                    "The arrow hit %s. (%d)"
+                    % (target.getName(), damage_dealt))
+                display.refresh_screen()
+                target.cur_HP -= damage_dealt
+                target.checkDeath()
+                self.source.currentLevel.removeSolidEffect(current_location, ARROW_GLYPH)
+                break
+            else:
+                if i >= 12:
+                    self.source.currentLevel.removeSolidEffect(current_location, ARROW_GLYPH)
+                    display.refresh_screen()
+                    break
 
         return True
 

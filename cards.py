@@ -4,6 +4,7 @@ MON_ABILITY_DICT = {
     "lancer" : {"code":"CRITICAL", "aname":"Damaging attack", "is_melee":True, "is_directional":True,},
     "boxer" : {"code":"KNOCK", "aname":"Punch", "is_melee":True, "is_directional":True,},
     "grenadier": {"code":"GRENTHROW", "aname":"Throw grenade", "is_melee":False, "is_directional":True,},
+    "archer": {"code":"ARROW", "aname":"Fire arrow", "is_melee":False, "is_directional":True,}
 }
 
 class Deck(object):

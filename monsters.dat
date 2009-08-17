@@ -50,19 +50,22 @@ two_square_thrower
 [ENDSEC]
 
 <MONSTER>
-name=cat
-glyph=f
+name=archer
+glyph=a
 hp=12
-atk=20
+atk=13
 def=120
 speed=12
-ai=CLOSE
-level=4
+ai=RANGEDAPPROACH
+level=1
 r=255
 g=255
 b=255
-spec=NONE
+spec=ARROW
 specfreq=0
+[TAG]
+twelve_square_firer
+[END]
 [ENDSEC]
 
 <MONSTER>

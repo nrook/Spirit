@@ -272,7 +272,7 @@ class Level(object):
         
         return self.dungeon[coords]
 
-    def addSolidEffect(self, glyph, coords):
+    def addSolidEffect(self, coords, glyph):
         """
         Add a glyph to the level's solid effects map.
 

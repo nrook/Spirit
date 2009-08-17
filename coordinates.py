@@ -129,6 +129,35 @@ def are_diagonally_adjacent(coord1, coord2):
 
     return (abs(coord1[0] - coord2[0]) == 1 and abs(coord1[1] - coord2[1]) == 1)
 
+def get_cardinal_direction(coord1, coord2):
+    """
+    Get the direction from coord1 to coord2.
+
+    A "cardinal direction" is a direction such as (1, 1), (1, 0), (0, -1), etc.
+    If coord2 is in such a direction from coord1, this function returns it.  If
+    not, it returns None.
+    """
+
+    difference = subtract(coord2, coord1)
+    if difference[0] == 0:
+        if difference[1] > 0:
+            return (0, 1)
+        elif difference[1] < 0:
+            return (0, -1)
+        else:
+            return None
+    elif difference[1] == 0:
+        if difference[0] > 0:
+            return (1, 0)
+        elif difference[0] < 0:
+            return (-1, 0)
+        else:
+            return None
+    elif abs(difference[0]) == abs(difference[1]):
+        return (difference[0]/abs(difference[0]), difference[1]/abs(difference[1]))
+    else:
+        return None
+
 def minimumPath(coord1, coord2):
     """
     Return the minimum number of steps required to connect two coordinates.
