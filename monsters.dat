@@ -18,7 +18,7 @@ specfreq=50
 name=lancer
 glyph=s
 hp=10
-atk=10
+atk=18
 def=100
 speed=12
 ai=CLOSE
@@ -33,7 +33,7 @@ specfreq=30
 <MONSTER>
 name=grenadier
 glyph=g
-hp=28
+hp=38
 atk=5
 def=200
 speed=12
@@ -71,7 +71,7 @@ twelve_square_firer
 <MONSTER>
 name=spider
 glyph=i
-hp=20
+hp=30
 atk=13
 def=100
 speed=12

@@ -23,6 +23,7 @@ import cards
 import fov
 import events
 import pf
+import cond
 import kb
 kp = kb.kp
 
@@ -217,6 +218,24 @@ class Dude(fixedobj.FixedObject):
         for condition in conditions_to_be_removed:
             self.condition_list.remove(condition)
 
+    def getConditionAction(self):
+        """
+        Get an action governed by the Dude's condition, not its decisions.
+
+        Return an action if the Dude's conditions are making it take an action.
+        Return "None" if they are not.
+        """
+        possible_actions = []
+        for condition in self.condition_list:
+            new_action = condition.getAction(self)
+            if new_action is not None:
+                possible_actions.append(new_action)
+
+        if len(possible_actions) > 0:
+            return rng.choice(possible_actions)
+        else:
+            return None
+
 class Player(Dude):
     """
     The player, or at least his representation in the game.
@@ -239,7 +258,7 @@ class Player(Dude):
         if deck is None:
             deck = cards.Deck()
 
-        max_HP = 24 + 6 * char_level
+        max_HP = 12 + 6 * char_level
         if config.WIZARD:
             max_HP += 200
 
@@ -316,13 +335,18 @@ class Player(Dude):
 # Clear the message buffer.
         self.currentLevel.messages.archive()
 
+        cond_action = self.getConditionAction()
+        if cond_action is None:
 # First, get an action.  The entire purpose of these lines is to get an action
 # which can then be performed.  If they return instead, they should return
 # False, as no action has been performed.  Note that if the player is trying to
 # do something that basically exists outside of the game world (like quitting
 # or saving the game), there is no reason not to just let him do it within the
 # getAction() function itself.
-        cur_action = self.getAction()
+            cur_action = self.getAction()
+        else:
+            cur_action = cond_action
+
         if cur_action.getCode() == "DO NOTHING":
             return False
 
@@ -413,6 +437,10 @@ class Player(Dude):
                         return action.FireArrow(self, direction_of_target_square, 12)
                     assert False
                 assert False
+            elif key == kp.REST:
+# Give the player the "rest" status, so she waits until healed fully.
+                self.giveCondition(cond.Resting())
+                return action.Wait(self)
 # If the key is the "go upstairs" key, try to go up a level.
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == level.UPSTAIRS_GLYPH:

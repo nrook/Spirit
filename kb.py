@@ -38,7 +38,8 @@ class kp:
     CARD_6,
     CARD_7,
     CANCEL,
-    ) = range(23)
+    REST,
+    ) = range(24)
 
 mainScreenTranslationTable = {
 ord('k') : kp.N,
@@ -60,6 +61,7 @@ ord('4') : kp.CARD_4,
 ord('5') : kp.CARD_5,
 ord('6') : kp.CARD_6,
 ord('7') : kp.CARD_7,
+ord('r') : kp.REST
 }
 
 booleanQuestionTranslationTable = {
