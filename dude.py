@@ -97,6 +97,7 @@ class Dude(fixedobj.FixedObject):
         self.char_level = char_level
         self.tags = tags if tags is not None else []
         self.fov = fov.fov()
+        self.condition_list = []
     
     def __str__(self):
         return "%s\nID %s\nSpeed %s\nCoordinates: %s\nTags: %s" % (self.glyph, self.ID, self.speed, self.coords, self.tags)
@@ -182,6 +183,39 @@ class Dude(fixedobj.FixedObject):
         """
 
         self.fov.recalculate(self.currentLevel, self.coords)
+
+    def giveCondition(self, condition):
+        """
+        Apply a new condition to the Dude.
+        """
+
+        for i in self.condition_list:
+            if condition.name == i.name:
+                self.condition_list.remove(i)
+                break
+        self.condition_list.append(condition)
+
+    def hasCondition(self, condition_name):
+        """
+        Return True if the Dude has a condition of the name "condition_name".
+        """
+
+        return condition_name in [i.name for i in self.condition_list]
+
+    def updateConditions(self):
+        """
+        Update all of the conditions, and remove them if necessary.
+        """
+
+        conditions_to_be_removed = []
+
+        for condition in self.condition_list:
+            condition.passTurn()
+            if condition.isOver():
+                conditions_to_be_removed.append(condition)
+
+        for condition in conditions_to_be_removed:
+            self.condition_list.remove(condition)
 
 class Player(Dude):
     """
@@ -299,7 +333,11 @@ class Player(Dude):
 # loop.
             raise exc.LevelChange()
         
-        return cur_action.do()
+        action_succeeded = cur_action.do()
+        if action_succeeded:
+            self.updateConditions()
+
+        return action_succeeded
     
     def getAction(self):
         while 1:
@@ -327,8 +365,16 @@ class Player(Dude):
                 if target in self.currentLevel.dudeLayer:
                     return action.Attack(self, 
                                          self.currentLevel.dudeLayer[target])
+                elif self.canMove(target):
+ # If the player is stuck, he cannot move!
+                    if self.hasCondition("stuck"):
+                        self.currentLevel.messages.append("You are stuck and cannot move!")
+                        return action.DoNothing()
+                    else:
+                        return action.Move(self, config.DIRECTION_SWITCH[key])
                 else:
-                    return action.Move(self, config.DIRECTION_SWITCH[key])
+# A move is illegal!
+                    return action.DoNothing()
 # If the key is a card key, use the card.
             elif key in kb.card_values:
                 card_id = kb.card_values[key]
@@ -460,7 +506,14 @@ class Monster(Dude):
         self.resetFOV()
         cur_action = self.getAction()
 
-        return cur_action.do()
+        for condition in self.condition_list:
+            cur_action = condition.modifyAction(cur_action)
+
+        action_succeeded = cur_action.do()
+        if action_succeeded:
+            self.updateConditions()
+
+        return action_succeeded
 
     def getAction(self):
         """
@@ -501,6 +554,10 @@ class Monster(Dude):
                         return action.Wait(self)
                     self.state = ais.TRAVELING
                     return self.traveling()
+                else:
+# There is no possible escape route; give up and rest.
+                    self.state = ais.RESTING
+                    return self.resting()
 
             else:
                 assert False

@@ -69,6 +69,22 @@ twelve_square_firer
 [ENDSEC]
 
 <MONSTER>
+name=spider
+glyph=i
+hp=15
+atk=8
+def=100
+speed=12
+ai=CLOSE
+level=1
+r=200
+g=20
+b=20
+spec=STICK
+specfreq=50
+[ENDSEC]
+
+<MONSTER>
 name=bug
 glyph=B
 hp=1

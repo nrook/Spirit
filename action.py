@@ -36,6 +36,7 @@ import events
 import tcod_display as display
 import exc
 import symbol
+import cond
 
 CRIT_MULTIPLIER = 2
 KNOCK_DAMAGE = 5
@@ -384,6 +385,17 @@ def do_special_melee(attack_type, source, target):
         "%(SOURCE_NAME)s explodes!"
             % {"SOURCE_NAME": source.getName()})
         explode_action.do()
+    elif attack_type == "STICK":
+        damage_dealt = damage(source.attack, target.defense,
+                       source.char_level, target.char_level) / 5
+        source.currentLevel.messages.append(
+        "%(SOURCE_NAME)s spins a web around %(TARGET_NAME)s! (%(DAMAGE)d)"
+            % {"SOURCE_NAME": source.getName(),
+               "DAMAGE": damage_dealt,
+               "TARGET_NAME": target.getName()})
+        target.giveCondition(cond.Stuck())
+        target.cur_HP -= damage_dealt
+        target.checkDeath()
     else:
         raise exc.InvalidDataWarning("%s special ability used by %s on %s."
                                      % (attack_type, str(source), str(target)))
