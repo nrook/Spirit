@@ -613,7 +613,7 @@ class Monster(Dude):
 # The monster had reached its destination, then something moved it.
                     self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
 
-            if not len(self.path) > 1 and self.currentLevel.canMove(self, self.path[1]):
+            if len(self.path) > 1 and (not self.currentLevel.canMove(self, self.path[1])):
 # Something is blocking the path.  The path is no longer valid.
                 self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
 
