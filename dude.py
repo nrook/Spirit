@@ -30,30 +30,6 @@ kp = kb.kp
 import log
 
 """
-The speed system of this game is simple enough.
-
-Time is measured by a measure called a "tick."  There are 144 ticks in a round;
-once the round is over, the tick count resets.  (There is no significance to
-the number of rounds that have transpired.)  144 is a nice, easy number that
-is divisible by 2 and 3 many times, which is why it was picked.
-
-A dude's "speed" is measured by how many ticks it takes for it to act again.
-An ordinary dude has speed 12.
-
-6x   - 2
-4x   - 3
-3x   - 4
-2x   - 6
-1.5x - 8
-1x   - 12
-0.66x- 18
-0.5x - 24
-0.25x- 48
-
-I will probably ignore this whole comment.
-"""
-
-"""
 Legal monster tags:
 "proper_noun": this monster's name is a proper noun.
 "two_square_thrower": this monster has a projectile thrown two squares forward
@@ -83,7 +59,7 @@ class Dude(fixedobj.FixedObject):
     other classes derived from it.
     """
     def __init__(self, coords = (0, 0), glyph = symbol.BAD_GLYPH,
-                 speed = 12, max_HP = 2, currentLevel = None, name = "Unnamed",
+                 speed = 72, max_HP = 2, currentLevel = None, name = "Unnamed",
                  attack = 1, defense = 0, tags = None, char_level = 1,
                  passableTerrain = level.PASSABLE_TERRAIN):
         
@@ -254,7 +230,7 @@ class Player(Dude):
 
     REGENERATION_FACTOR = 0.01
 
-    def __init__(self, name, coords, speed = 12, currentLevel = None, char_level = 1, deck = None):
+    def __init__(self, name, coords, speed = 72, currentLevel = None, char_level = 1, deck = None):
         if deck is None:
             deck = cards.Deck()
 
@@ -498,7 +474,7 @@ class Monster(Dude):
             (5, 9), for instance.
         glyph - a one-character string representing the monster, like "d".
         AICode - a string representing the Monster's AI - "CLOSE", etc.
-        speed - just set this to 12 for now.
+        speed - just set this to 72 for now.
         max_HP - the maximum (and starting) HP of the monster.
         tags - any special qualities the monster has.
         attack - the monster's attack capability; what percentage of the health
