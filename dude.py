@@ -575,7 +575,7 @@ class Monster(Dude):
                 if len(out_of_vision_coords) > 0:
 # There is a possible escape route!  Pursue!
                     self.direction = coordinates.subtract(rng.choice(out_of_vision_coords), self.player_last_location)
-                    self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.player_last_location)
+                    self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.player_last_location, False)
                     if self.path == []:
 # There is no route to the player's escape route.  Wait, but stay in
 # state FIGHTING so as to take advantage of any route that opens up.
@@ -620,42 +620,68 @@ class Monster(Dude):
 
         assert self.path != None, "Despite the monster being in state TRAVELING, the path variable is null."
 
-# The path may be overwritten, so make sure the destination isn't lost.
-        destination = self.path[-1]
+        print "Beginning to travel."
         
         if self.currentLevel.player in self.fov:
+            print "The player is in view!"
             self.state = ais.FIGHTING
             return self.fighting()
         else:
-            if self.coords != self.path[0]:
-# Something has moved the monster since its last turn.  The path is no longer
-# valid.
-                self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
-            
-            if len(self.path) == 1:
-                if self.coords == self.path[0]:
-# The monster has reached its destination!
-                    self.state = ais.WANDERING
-                    return self.wandering()
-                else:
-# The monster had reached its destination, then something moved it.
-                    self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
-
-            if len(self.path) > 1 and (not self.currentLevel.canMove(self, self.path[1])):
-# Something is blocking the path.  The path is no longer valid.
-                self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.path[-1])
+            print "Starting invalid path determination.."
+            path_is_invalid = False
 
             if len(self.path) == 0:
-# HACK: Set the path to only contain the destination, so that next turn the
-# monster assumes it's been pushed off this path and tries to find another.
-                self.path = [destination]
-                return action.Wait(self)           
+                print "len(self.path) == 0"
+                assert False # This shouldn't happen!
+                path_is_invalid = True
+            elif self.coords != self.path[0]:
+                print "self.path[0] doesn't correspond to the actual path!"
+# Something has moved the monster since its last turn.
+                path_is_invalid = True
+            elif len(self.path) == 1:
+                print "the monster has reached its destination!"
+# Since self.coords == self.path[0], the monster has reached its destination!
+                self.state = ais.WANDERING
+                return self.wandering()
+            elif not self.canMove(self.path[1]):
+                print "The monster can't make it to self.path[1]."
+                path_is_invalid = True
 
-            move_direction = coordinates.subtract(self.path[1], self.path[0])
-            self.path.pop(0)
-            return action.Move(self, move_direction)
+            if path_is_invalid:
+                print "The path is invalid!"
+                if len(self.path) == 0:
+                    print "The path is empty!"
+# If the path is completely empty, something has gone wrong.
+                    assert False
+# Just give up and return to being stationary.
+                    self.state = ais.RESTING
+                    return self.resting()
+                else:
+                    print "The path has a destination."
+                    destination = self.path[-1]
+                    self.path = pf.find_shortest_path(self.currentLevel, self.coords, destination, True)
+                    if len(self.path) == 0:
+# There simply is no path to the destination!
+# Set self.path to only contain the destination, so that next turn, this code
+# attempts to find another path.
+                        print "There's no path to the destination!  Wait."
+                        self.path = [destination]
+                        return action.Wait(self)
+                    elif len(self.path) == 1:
+                        print "The path has only one square, for some reason."
+# This should not happen!
+                        assert False
+                        return action.Wait(self)
 
-        assert False
+            if self.canMove(self.path[1]):
+                print "Moving on the path!"
+                move_direction = coordinates.subtract(self.path[1], self.coords)
+                self.path.pop(0)
+                return action.Move(self, move_direction)
+            else:
+                print "Can't move on the path!"
+                assert False, "The supposedly legal path contains an illegal move!"
+                return action.Wait(self)
 
     def wandering(self):
         """
@@ -712,7 +738,7 @@ class Monster(Dude):
 
 # Otherwise, pathfind toward him.
         else:
-            path = pf.find_shortest_path(self.currentLevel, self.coords, player_location)
+            path = pf.find_shortest_path(self.currentLevel, self.coords, player_location, False)
             if path != []:
                 move_coords = coordinates.subtract(path[1], path[0])
                 return action.Move(self, move_coords)

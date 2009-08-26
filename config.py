@@ -2,7 +2,7 @@
 Contains a bunch of constants and program-wide values.
 """
 
-WIZARD = False
+WIZARD = True
 
 DEFAULT_MAP_X_WIDTH = 80 #Default width of the entire screen
 DEFAULT_MAP_Y_WIDTH = 24 #Default height of the entire screen

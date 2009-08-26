@@ -37,7 +37,7 @@ def repeat(event):
 def stop():
     ev.set()
 
-class effectsMap(object):
+class EffectsMap(object):
     """
     A container which represents special effects over a Level.
     
@@ -84,7 +84,7 @@ class effectsMap(object):
 
         if coords not in self.__map:
             raise KeyError("There is no glyph at the coordinates %s." % coords)
-        
+
         if glyph is None:
             ret_glyph = self.__map[coords].pop(0)
             if len(self.__map[coords]) == 0:
@@ -92,13 +92,13 @@ class effectsMap(object):
             return ret_glyph
         else:
             try:
-                ret_glyph = self.__map[coords].remove(glyph)
+                self.__map[coords].remove(glyph)
             except ValueError:
                 raise ValueError("The glyph %s is not present at %s." % (glyph, coords))
             else:
                 if len(self.__map[coords]) == 0:
                     del self.__map[coords]
-                return ret_glyph
+                return glyph
 
     def getArray(self):
         """

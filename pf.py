@@ -11,7 +11,7 @@ Note that a "path" is a list of the form:
 where each element is adjacent to the element before.
 """
 
-def find_shortest_path(level_, source, destination):
+def find_shortest_path(level_, source, destination, destination_must_be_clear = False):
     """
     Find the shortest path between two coordinates on the level.
     
@@ -21,17 +21,27 @@ def find_shortest_path(level_, source, destination):
     level_ - the level being searched.
     source - the beginning of the path.
     destination - the end of the path.
+    destination_must_be_clear - True if the pathfinding should fail if the
+        destination has a monster on it.  False otherwise.
 
     Returns: a list containing the shortest path between the source and the 
         destination, or the empty list, if no such path exists.
     """
-
-    def adjacent_squares_function(square):
-        passable_coords = level_.immediately_accessible_squares(square)
-        no_monster_coords = [i for i in passable_coords if 
-            ((i not in level_.dudeLayer)
-             or (i in (source, destination)))]
-        return no_monster_coords
+    
+    if destination_must_be_clear:
+        def adjacent_squares_function(square):
+            passable_coords = level_.immediately_accessible_squares(square)
+            no_monster_coords = [i for i in passable_coords if 
+                ((i not in level_.dudeLayer)
+                 or (i == source))]
+            return no_monster_coords
+    else:
+        def adjacent_squares_function(square):
+            passable_coords = level_.immediately_accessible_squares(square)
+            no_monster_coords = [i for i in passable_coords if 
+                ((i not in level_.dudeLayer)
+                 or (i in (source, destination)))]
+            return no_monster_coords
     
     try:
         return _find_shortest_path(level_.dimensions, adjacent_squares_function, source, destination)

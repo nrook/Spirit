@@ -79,7 +79,7 @@ class Level(object):
         self.elements = elements
         self.dimensions = dimensions
         self.dudeLayer = dude_layer
-        self.effects = effects.effectsMap(dimensions)
+        self.effects = effects.EffectsMap(dimensions)
         self.player = None
         self.messages = msg.MessageBuffer(config.MESSAGES_DIMENSIONS)
         self.__composite_map = arrays.empty_str_array(dimensions)

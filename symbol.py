@@ -19,7 +19,7 @@ class Glyph(object):
     def __init__(self, char, color):
         """
         char - the character of the glyph.
-        color - the color of the glyph, a 3-tuple of 0 to 255 ints..
+        color - the color of the glyph, a 3-tuple of 0 to 255 ints.
         """
 
         self.char = char
