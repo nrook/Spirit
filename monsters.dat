@@ -96,7 +96,7 @@ level=6
 r=255
 g=255
 b=0
-spec=NONE
+spec=NOEFF
 specfreq=0
 [ENDSEC]
 

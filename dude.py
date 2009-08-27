@@ -423,6 +423,8 @@ class Player(Dude):
                             return action.DoNothing()
                     elif card_to_use.action_code == "ARROW":
                         return action.FireArrow(self, direction_of_target_square, 12)
+                    elif card_to_use.action_code == "HASTE":
+                        return action.HasteMonster(self, self, 12)
                     assert False
                 assert False
             elif key == kp.REST:

@@ -79,6 +79,20 @@ class Stuck(Condition):
         else:
             return act
 
+class Haste(Condition):
+    """
+    A condition in which the dude's speed doubles.
+    """
+
+    def __init__(self, duration):
+        Condition.__init__(self, duration, "haste")
+
+    def apply(self, dude_):
+        dude_.speed /= 2
+
+    def cancel(self, dude_):
+        dude_.speed *= 2
+
 class Resting(Condition):
     """
     A condition in which a dude rests until it has full health.

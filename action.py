@@ -314,6 +314,23 @@ class ThrowGrenade(Action):
 
         return self.source.speed
 
+class HasteMonster(Action):
+    """
+    An action representing applying the Haste status to a dude.
+    """
+
+    def __init__(self, source, target, duration):
+        Action.__init__(self, "HASTEMON", "%(TARGET_NAME)s is speeding up!")
+        self.source = source
+        self.target = target
+        self.duration = duration
+
+    def do(self):
+        self.target.currentLevel.messages.append(self.message
+            % {"TARGET_NAME": self.target.getName()})
+        self.target.giveCondition(cond.Haste(self.duration))
+        return self.source.speed
+
 def is_generic_action(act):
     """
     Return True if the action passed is a generic action both lots of players

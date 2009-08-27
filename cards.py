@@ -6,6 +6,7 @@ MON_ABILITY_DICT = {
     "grenadier": {"code":"GRENTHROW", "aname":"Throw grenade", "is_melee":False, "is_directional":True,},
     "archer": {"code":"ARROW", "aname":"Fire arrow", "is_melee":False, "is_directional":True,},
     "spider": {"code":"STICK", "aname":"Spin web", "is_melee":True, "is_directional":True,},
+    "tiger": {"code":"HASTE", "aname":"Haste", "is_melee":False, "is_directional":False,}
 }
 
 class Deck(object):
