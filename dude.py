@@ -79,9 +79,6 @@ class Dude(fixedobj.FixedObject):
     def __str__(self):
         return "%d:%s (S:%d, %d/%d) (%d,%d)" % (self.ID, self.name, self.speed, self.cur_HP, self.max_HP, self.coords[0], self.coords[1])
     
-    def isTurn(self, tickno):
-        return (tickno % speed == 0)
-    
     def act(self):
         raise NotImplementedError("Only implemented by Dude's children.")
     
