@@ -37,6 +37,7 @@ import tcod_display as display
 import exc
 import symbol
 import cond
+import config
 
 CRIT_MULTIPLIER = 2
 KNOCK_DAMAGE = 5
@@ -68,6 +69,10 @@ class Action(object):
     
     def getCode(self):
         return self.strcode
+
+    def do(self):
+# The "do" method must return the number of ticks the action took.
+        return 0
 
 class DoNothing(Action):
     """
@@ -115,9 +120,10 @@ class Move(Action):
 
         if self.source.canMove(destination_coords):
             self.source.currentLevel.moveDude(self.source, destination_coords)
-            return True
+            return self.source.speed
         else:
             assert False
+            return 0
 
 class Up(Action):
     """
@@ -126,7 +132,6 @@ class Up(Action):
     def __init__(self):
         Action.__init__(self, "UP")
     
-
 class Quit(Action):
     """
     An action that represents the player's desire to quit the game.
@@ -150,10 +155,10 @@ class Wait(Action):
 
     def do(self):
         """
-        Do nothing, and return True.
+        Have the dude stand in place.
         """
 
-        return True
+        return self.source.speed
 
 class Attack(Action):
     """
@@ -188,7 +193,7 @@ class Attack(Action):
         self.target.cur_HP -= damage_dealt
         self.target.checkDeath()
 
-        return True
+        return self.source.speed
 
 class SpecialMelee(Action):
     """
@@ -209,7 +214,7 @@ class SpecialMelee(Action):
 
     def do(self):
         do_special_melee(self.code, self.source, self.target)
-        return True
+        return self.source.speed
 
 class Explode(Action):
     """
@@ -233,7 +238,7 @@ class Explode(Action):
                     (target.getName(), self.damage))
                 target.checkDeath()
 
-        return True
+        return 0
 
 class FireArrow(Action):
     """
@@ -289,7 +294,7 @@ class FireArrow(Action):
                     display.refresh_screen()
                     break
 
-        return True
+        return self.source.speed
 
 class ThrowGrenade(Action):
     """
@@ -305,9 +310,9 @@ class ThrowGrenade(Action):
     def do(self):
         self.source.currentLevel.messages.append(self.message
             % {"SOURCE_NAME": self.source.getName()})
-        self.source.currentLevel.events.append(events.TimedExplosion(self.source.currentLevel, self.target_coords, self.damage, 2))
+        self.source.currentLevel.addEvent(events.TimedExplosion(self.source.currentLevel, self.target_coords, self.damage, 2), config.TURN_TICKS)
 
-        return True
+        return self.source.speed
 
 def is_generic_action(act):
     """

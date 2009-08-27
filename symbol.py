@@ -37,6 +37,9 @@ class Glyph(object):
     def __hash__(self):
         return hash((self.char, self.color))
 
+    def __str__(self):
+        return self.char
+
 BAD_GLYPH = ('!', 255, 0, 0)
 
 class glyphMap(dict):

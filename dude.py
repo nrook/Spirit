@@ -77,7 +77,7 @@ class Dude(fixedobj.FixedObject):
         self.condition_list = []
     
     def __str__(self):
-        return "%s\nID %s\nSpeed %s\nCoordinates: %s\nTags: %s" % (self.glyph, self.ID, self.speed, self.coords, self.tags)
+        return "%d:%s (S:%d, %d/%d) (%d,%d)" % (self.ID, self.name, self.speed, self.cur_HP, self.max_HP, self.coords[0], self.coords[1])
     
     def isTurn(self, tickno):
         return (tickno % speed == 0)
@@ -211,6 +211,9 @@ class Dude(fixedobj.FixedObject):
             return rng.choice(possible_actions)
         else:
             return None
+
+    def exists(self):
+        return not self.isDead()
 
 class Player(Dude):
     """
@@ -766,7 +769,7 @@ class Monster(Dude):
     def die(self):
         if self.spec != "NONE":
             self.currentLevel.player.obtainCard(self)
-        self.currentLevel.removeDude(self)
+        self.currentLevel.kill(self)
 
 class MonsterFactory(list):
     """

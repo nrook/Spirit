@@ -11,6 +11,7 @@ import msg
 import symbol
 import events
 import effects
+import queue
 
 ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
 CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
@@ -87,6 +88,7 @@ class Level(object):
         self.__are_maps_correct = False
         self.__queue = None
         self.events = [events.LevelTick(self)]
+        self.time = 0
     
     def __str__(self):
         return str(self.getArray())
@@ -253,17 +255,35 @@ class Level(object):
         
         return self.player
     
-    def removeDude(self, removedDude):
+    def kill(self, target):
         """
-        Remove a dude from this level, setting its current level to None.
+        Remove an actor from the level.
         
-        This will delete the dude entirely if no other references to it exist.
+        This will delete the actor entirely if no other references to it exist.
+        Note that while kill() will delete the glyph of a dude, it will not
+        delete the remaining glyphs from an event!  Any dying event must do its
+        own dirty work.
         """
+        something_was_killed = False
+# If it's in the dudeLayer, remove it.
+        if target in self.dudeLayer:
+            self.dudeLayer.remove(target)
+            something_was_killed = True
+# If it's in the dudeLayer, it's on the map.
+            self.__delCharacterFromMap(target.coords, self.__DUDE_HEIGHT)
 
-        self.dudeLayer.remove(removedDude)
-        if removedDude in self.__queue:
-            del self.__queue[self.__queue.index(removedDude)]
-        self.__delCharacterFromMap(removedDude.coords, self.__DUDE_HEIGHT)
+# If it's an event, remove it.
+        if target in self.events:
+            self.events.remove(target)
+            something_was_killed = True
+        
+# If it's in the queue, remove it from there.
+        if target in self.__queue:
+            self.__queue.erase(target)
+            something_was_killed = True
+
+        if not something_was_killed:
+            raise ValueError("Couldn't kill %s." % target)
 
     def dungeonGlyph(self, coords):
         """
@@ -399,12 +419,23 @@ class Level(object):
 # the LevelTick instance updates things in the Level which should only be
 # updated once per turn.  Currently, this LevelTick instance is a piece of
 # state local to the Level it updates.
-        
-        queue = [presentDude for presentDude in self.dudeLayer]
-        del queue[queue.index(self.player)]
-        queue.insert(0, self.player)
-        queue.extend(self.events)
-        self.__queue = queue
+
+        q = queue.PriorityQueue()
+        for e in self.events:
+            q.put(e, 0)
+        q.put(self.player, 0)
+        for p in self.dudeLayer:
+            if not p.isPlayer():
+                q.put(p, 0)
+
+        self.__queue = q
+
+    def addEvent(self, event, execution_time):
+        """
+        Add an event to the level.
+        """
+        self.events.append(event)
+        self.__queue.put(event, self.time + execution_time)
 
     def next(self):
         """
@@ -413,16 +444,23 @@ class Level(object):
         its turn without this method returning.
         """
         
-        if (self.__queue is None) or (len(self.__queue) == 0):
+        if (self.__queue is None) or (self.__queue.isEmpty()):
             self.resetQueue()
-        next_actor = self.__queue[0]
+        self.time += self.__queue.priority_interval()
+        next_actor = self.__queue.get()
 
-# Note that the act() method returns True if the actor has done something to
-# take up its turn, and False otherwise.  Thus, this bit of code keeps asking
-# the next actor to do something, only completing when it finally does.
-        while not next_actor.act(): pass
+# The act() method returns the speed of the action, the number of ticks until
+# the actor gets to move again.  (If the number of ticks is 0, things get weird,
+# so this method just asks for another action instead of going through the
+# queue.
 
-        del self.__queue[0]
+        actor_ticks = 0
+        while actor_ticks == 0 and next_actor.exists():
+            actor_ticks = next_actor.act()
+
+        if next_actor.exists():
+            self.__queue.put(next_actor, self.time + actor_ticks)
+
         return
 
 class Layer(list):
@@ -455,10 +493,10 @@ class Layer(list):
         try:
             k = key[0]
         except TypeError:
-            #key is not a sequence; assumed to be a list key
+            # key is not a sequence; assumed to be a list key
             return list.__getitem__(self, key)
         else:
-            #key is a sequence, assumed to be a coord key
+            # key is a sequence, assumed to be a coord key
             return self.coordinateDict[key]
     
     def __delitem__(self, key):
@@ -472,7 +510,7 @@ class Layer(list):
         else:
             list.__delitem__(self, self.index(self[key]))
             del self.coordinateDict[key]
-    
+
     def __contains__(self, item):
         """Returns true with an item in this Layer or coordinates of one."""
         try:
@@ -507,7 +545,6 @@ class Layer(list):
         This method changes both the coords inside the FixedObject and the
         coords inside this Layer's internal map.
         """
-        
         dudeOriginalCoords = movedDude.getCoords()
         if dudeOriginalCoords != moveCoords:
             self.__changeCoords(movedDude, moveCoords)

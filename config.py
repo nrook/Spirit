@@ -13,6 +13,8 @@ MAP_DIMENSIONS = (60, 17)
 MESSAGES_DIMENSIONS = (80, 7)
 STATUS_DIMENSIONS = (20, 17)  #column 1 intentionally left blank
 
+TURN_TICKS = 72
+
 from kb import kp
 
 DIRECTION_SWITCH =  {

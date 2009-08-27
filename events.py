@@ -11,6 +11,7 @@ import action
 import symbol
 import coordinates
 import kb
+import config
 
 class Event(object):
     """
@@ -19,9 +20,17 @@ class Event(object):
     
     def __init__(self, current_level):
         self.currentLevel = current_level
+        self.existence = True
 
     def die(self):
-        self.currentLevel.events.remove(self)
+        self.currentLevel.kill(self)
+        self.existence = False
+    
+    def exists(self):
+        return self.existence
+
+    def isPlayer(self):
+        return False
 
 class LevelTick(Event):
     """
@@ -38,19 +47,16 @@ class LevelTick(Event):
         current_level - the Level which the LevelTick should update if its act()
             method is called.
         """
-
-        self.currentLevel = current_level
-        
+        Event.__init__(self, current_level)
         return
 
     def act(self):
         """
         Update the state of the LevelTick's level.  Return True.
         """
-        
         self.currentLevel.player.deck.draw()
         self.currentLevel.player.regenerate()
-        return True
+        return config.TURN_TICKS
 
 class TimedExplosion(Event):
     """
@@ -97,7 +103,7 @@ class TimedExplosion(Event):
             self.currentLevel.removeSolidEffect(self.coords, self.GRENADE_GLYPHS[self.time+1])
             self.currentLevel.addSolidEffect(self.coords, self.GRENADE_GLYPHS[self.time])
 
-        return True
+        return config.TURN_TICKS
 
     def showExplosion(self):
         """

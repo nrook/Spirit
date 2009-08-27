@@ -85,9 +85,9 @@ specfreq=50
 [ENDSEC]
 
 <MONSTER>
-name=cat
+name=tiger
 glyph=c
-hp=30
+hp=50
 atk=15
 def=100
 speed=36
