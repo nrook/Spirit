@@ -599,66 +599,51 @@ class Monster(Dude):
 
         assert self.path != None, "Despite the monster being in state TRAVELING, the path variable is null."
 
-        print "Beginning to travel."
-        
         if self.currentLevel.player in self.fov:
-            print "The player is in view!"
             self.state = ais.FIGHTING
             return self.fighting()
         else:
-            print "Starting invalid path determination.."
             path_is_invalid = False
 
             if len(self.path) == 0:
-                print "len(self.path) == 0"
                 assert False # This shouldn't happen!
                 path_is_invalid = True
             elif self.coords != self.path[0]:
-                print "self.path[0] doesn't correspond to the actual path!"
 # Something has moved the monster since its last turn.
                 path_is_invalid = True
             elif len(self.path) == 1:
-                print "the monster has reached its destination!"
 # Since self.coords == self.path[0], the monster has reached its destination!
                 self.state = ais.WANDERING
                 return self.wandering()
             elif not self.canMove(self.path[1]):
-                print "The monster can't make it to self.path[1]."
                 path_is_invalid = True
 
             if path_is_invalid:
-                print "The path is invalid!"
                 if len(self.path) == 0:
-                    print "The path is empty!"
 # If the path is completely empty, something has gone wrong.
                     assert False
 # Just give up and return to being stationary.
                     self.state = ais.RESTING
                     return self.resting()
                 else:
-                    print "The path has a destination."
                     destination = self.path[-1]
                     self.path = pf.find_shortest_path(self.currentLevel, self.coords, destination, True)
                     if len(self.path) == 0:
 # There simply is no path to the destination!
 # Set self.path to only contain the destination, so that next turn, this code
 # attempts to find another path.
-                        print "There's no path to the destination!  Wait."
                         self.path = [destination]
                         return action.Wait(self)
                     elif len(self.path) == 1:
-                        print "The path has only one square, for some reason."
 # This should not happen!
                         assert False
                         return action.Wait(self)
 
             if self.canMove(self.path[1]):
-                print "Moving on the path!"
                 move_direction = coordinates.subtract(self.path[1], self.coords)
                 self.path.pop(0)
                 return action.Move(self, move_direction)
             else:
-                print "Can't move on the path!"
                 assert False, "The supposedly legal path contains an illegal move!"
                 return action.Wait(self)
 
