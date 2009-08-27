@@ -24,14 +24,12 @@ class Condition(object):
         """
         Indicate to the condition that a turn has passed.
         """
-
         self.time -= 1
 
     def isOver(self):
         """
         Return True if the condition is over, False otherwise.
         """
-
         return self.time < 0
 
     def getAction(self, dude_):
@@ -63,7 +61,6 @@ class Stuck(Condition):
         """
         If a dude is Stuck, all of their moves become Wait actions.
         """
-
         if act.strcode == "MOVE":
             return action.Wait(act.source)
         else:
