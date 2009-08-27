@@ -336,20 +336,19 @@ class Player(Dude):
             cur_action = cond_action
 
         if cur_action.getCode() == "DO NOTHING":
-            return False
+            return 0
 
         if cur_action.getCode() == "UP":
-
 # Going up a level is an action which the Level being left cannot feasibly deal
 # with.  As such, an exception is raised instead, to be caught in the main
 # loop.
             raise exc.LevelChange()
         
-        action_succeeded = cur_action.do()
-        if action_succeeded:
+        action_ticks = cur_action.do()
+        if action_ticks != 0:
             self.updateConditions()
 
-        return action_succeeded
+        return action_ticks
     
     def getAction(self):
         while 1:
