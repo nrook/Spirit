@@ -504,7 +504,7 @@ class Layer(list):
         try:
             k = key[0]
         except TypeError:
-            #This will screw up silently if coords is wrong!
+            # This will screw up silently if coords is wrong!
             del self.coordinateDict[self[key].coords]
             list.__delitem__(self, key)
         else:
@@ -576,23 +576,6 @@ class DudeLayer(Layer):
         self.moveQueue = []
         self.player = player
     
-#    def generateQueue(self):
-#        """
-#        Set the dudes who are moving this turn, in order, to self.queue.
-#        
-#        The following restrictions are in place here:
-#        1. The player, if he is moving, always moves first.
-#        2. The monsters move in a consistent order.
-#        """
-#        
-#        if self.player == self[0]:
-#            self.queue = [presentDude for presentDude in self]
-#        else:
-#            queue = [presentDude for presentDude in self]
-#            del queue[queue.index(self.player)]
-#            queue.insert(0, self.player)
-#            self.queue = queue
-    
     def remove(self, removed):
         """
         Remove something from this layer.
@@ -601,8 +584,6 @@ class DudeLayer(Layer):
         removed.setCurrentLevel(None)
         # These lines is horribly inefficient; there's got to be a better way.
         del self[self.index(removed)]
-#        if removed in self.queue:
-#            del self.queue[self.queue.index(removed)]
 
 def empty_dungeon(dimensions):
     """
