@@ -74,7 +74,7 @@ class Dude(fixedobj.FixedObject):
         self.char_level = char_level
         self.tags = tags if tags is not None else []
         self.fov = fov.fov()
-        self.condition_list = []
+        self.conditions = {} # a dict whose keys are condition names, and whose values are the conditions themselves
     
     def __str__(self):
         return "%d:%s (S:%d, %d/%d) (%d,%d)" % (self.ID, self.name, self.speed, self.cur_HP, self.max_HP, self.coords[0], self.coords[1])
@@ -165,19 +165,28 @@ class Dude(fixedobj.FixedObject):
         """
         Apply a new condition to the Dude.
         """
+        
+        if condition.name in self.conditions:
+            self.removeCondition(condition.name)
+        self.conditions[condition.name] = condition
+        condition.apply(self)
 
-        for i in self.condition_list:
-            if condition.name == i.name:
-                self.condition_list.remove(i)
-                break
-        self.condition_list.append(condition)
+    def removeCondition(self, condition_name):
+        """
+        Remove a condition from the dude of the name "condition_name".
+        """
+        if condition_name in self.conditions:
+            self.conditions[condition_name].cancel(self)
+            del self.conditions[condition_name]
+        else:
+            raise KeyError("This condition, %s, is not found on this monster." % condition_name)
 
     def hasCondition(self, condition_name):
         """
         Return True if the Dude has a condition of the name "condition_name".
         """
 
-        return condition_name in [i.name for i in self.condition_list]
+        return condition_name in self.conditions
 
     def updateConditions(self):
         """
@@ -186,13 +195,13 @@ class Dude(fixedobj.FixedObject):
 
         conditions_to_be_removed = []
 
-        for condition in self.condition_list:
+        for condition in self.conditions.values():
             condition.passTurn()
             if condition.isOver():
                 conditions_to_be_removed.append(condition)
 
         for condition in conditions_to_be_removed:
-            self.condition_list.remove(condition)
+            self.removeCondition(condition.name)
 
     def getConditionAction(self):
         """
@@ -202,7 +211,7 @@ class Dude(fixedobj.FixedObject):
         Return "None" if they are not.
         """
         possible_actions = []
-        for condition in self.condition_list:
+        for condition in self.conditions.values():
             new_action = condition.getAction(self)
             if new_action is not None:
                 possible_actions.append(new_action)
@@ -513,7 +522,7 @@ class Monster(Dude):
         self.resetFOV()
         cur_action = self.getAction()
 
-        for condition in self.condition_list:
+        for condition in self.conditions.values():
             cur_action = condition.modifyAction(cur_action)
 
         action_succeeded = cur_action.do()

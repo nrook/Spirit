@@ -398,7 +398,7 @@ def do_special_melee(attack_type, source, target):
             % {"SOURCE_NAME": source.getName(),
                "DAMAGE": damage_dealt,
                "TARGET_NAME": target.getName()})
-        target.giveCondition(cond.Stuck())
+        target.giveCondition(cond.Stuck(8))
         target.cur_HP -= damage_dealt
         target.checkDeath()
     else:

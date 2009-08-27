@@ -49,12 +49,25 @@ class Condition(object):
         """
         return act
 
+    def apply(self, dude_):
+        """
+        Apply any effects that occur when the condition is given to a dude.
+        """
+        return
+
+    def cancel(self, dude_):
+        """
+        Do any effects that occur once the condition is over.  That is, return
+        the dude to its original state.
+        """
+        return
+
 class Stuck(Condition):
     """
     A condition in which a dude cannot move.
     """
     
-    def __init__(self):
+    def __init__(self, duration):
         Condition.__init__(self, 8, "stuck")
 
     def modifyAction(self, act):
