@@ -101,6 +101,22 @@ specfreq=0
 [ENDSEC]
 
 <MONSTER>
+name=q.statue
+glyph=o
+hp=1
+atk=0
+def=50
+speed=288
+ai=STATUE
+level=1
+r=0
+g=127
+b=0
+spec=QUICKEN
+specfreq=0
+[ENDSEC]
+
+<MONSTER>
 name=bug
 glyph=B
 hp=1

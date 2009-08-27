@@ -125,6 +125,33 @@ class Move(Action):
             assert False
             return 0
 
+class Teleport(Action):
+    """
+    An action representing a move by a dude to any square.
+    """
+
+    def __init__(self, source, destination):
+        """
+        source - the dude teleporting.
+        destination - the dude's destination.
+        """
+        
+        Action.__init__(self, "TELEPORT")
+        self.source = source
+        self.destination = destination
+
+    def do(self):
+        if self.source.currentLevel.isEmpty(self.destination) \
+            and self.destination not in self.source.currentLevel.dudeLayer:
+
+            self.source.currentLevel.messages.append("%(SOURCE_NAME)s suddenly disappears!"
+                % {"SOURCE_NAME":self.source.getName()})
+            self.source.currentLevel.moveDude(self.source, self.destination)
+            return self.source.speed
+        else:
+            assert False
+            return 0
+
 class Up(Action):
     """
     An action representing an attempt to move up a level.
@@ -329,6 +356,26 @@ class HasteMonster(Action):
         self.target.currentLevel.messages.append(self.message
             % {"TARGET_NAME": self.target.getName()})
         self.target.giveCondition(cond.Haste(self.duration))
+        return self.source.speed
+
+class HasteAll(Action):
+    """
+    An action representing Hasting all of the dudes in view.
+
+    Note that HasteAll hastes the player for twice as long as the monsters!
+    """
+
+    def __init__(self, source, duration):
+        Action.__init__(self, "HASTEALL", "The air itself quickens around %(SOURCE_NAME)s!")
+        self.source = source
+        self.duration = duration
+
+    def do(self):
+        self.source.currentLevel.messages.append(self.message
+            % {"SOURCE_NAME": self.source.getName()})
+        HasteMonster(self.source, self.source, self.duration * 2).do()
+        for d in self.source.fov.dudes:
+            HasteMonster(self.source, d, self.duration).do()
         return self.source.speed
 
 def is_generic_action(act):

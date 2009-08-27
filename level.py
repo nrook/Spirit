@@ -393,14 +393,9 @@ class Level(object):
         return legality
     
     def moveDude(self, movedDude, moveCoords):
-        if not self.canMove(movedDude, moveCoords):
-            return False
-
         self.__delCharacterFromMap(movedDude.coords, self.__DUDE_HEIGHT)
         self.dudeLayer.moveObject(movedDude, moveCoords)
         self.__addCharacterToMap(movedDude.glyph, movedDude.coords, self.__DUDE_HEIGHT)
-
-        return True
     
     def resetQueue(self):
         """

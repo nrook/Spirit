@@ -421,6 +421,8 @@ class Player(Dude):
                         return action.FireArrow(self, direction_of_target_square, 12)
                     elif card_to_use.action_code == "HASTE":
                         return action.HasteMonster(self, self, 12)
+                    elif card_to_use.action_code == "HASTEALL":
+                        return action.HasteAll(self, 8)
                     assert False
                 assert False
             elif key == kp.REST:
@@ -533,6 +535,10 @@ class Monster(Dude):
         """
         Calculate the action of a monster.  AI code goes here!
         """
+
+# special AI routines for weird monsters
+        if self.AICode == "STATUE":
+            return self.statue()
         
         if self.state == ais.FIGHTING:
             return self.fighting()
@@ -757,6 +763,45 @@ class Monster(Dude):
                 return None
         else:
             return None
+
+    def statue(self):
+        """
+        The statue AI pattern is as follows:
+
+        If a monster that meets certain conditions is in view, do something to
+        it.
+        If no such monster is in view, teleport adjacent to a damaged monster.
+        If no such monster exists, then teleport randomly.
+        """
+
+        for d in self.fov.dudes:
+            if self.spec == "QUICKEN":
+                if (not d.isPlayer()) and (d.AICode != "STATUE"):
+                    return action.HasteMonster(self, d, 8)
+            else:
+                assert False
+        
+# If the statue did not do anything to monsters in view, it must teleport.
+        for m in self.currentLevel.dudeLayer:
+            if m.cur_HP < m.max_HP and not m.isPlayer() and (m.AICode != "STATUE"):
+# Aha, a target!
+                destination_candidates = coordinates.adjacent_coords(m.coords)
+                destination_options = [i for i in destination_candidates 
+                    if self.currentLevel.isEmpty(i)
+                    and i not in self.currentLevel.dudeLayer]
+                if destination_options != []:
+                    return action.Teleport(self, rng.choice(destination_options))
+
+# If there are no monsters to which the statue can teleport, teleport randomly.
+        for i in range(100):
+            destination = rng.randomPointInRect((0,0), (self.currentLevel.dimensions[0] - 1, self.currentLevel.dimensions[1] - 1))
+            if self.currentLevel.isEmpty(destination) and \
+                destination not in self.currentLevel.dudeLayer:
+                
+                return action.Teleport(self, destination)
+
+        return action.Wait(self)
+
     
     def die(self):
         if self.spec != "NONE":
