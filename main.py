@@ -2,8 +2,6 @@
 The main loop; if you want to play, this is where you do it.
 """
 
-LOAD_FROM_SAVE = False
-LOAD_FROM_RANDOM_DUNGEON = True
 USE_PROFILER = False
 
 if USE_PROFILER:
@@ -26,19 +24,16 @@ import log
 def main(win = None):
     mainMonsterFactory = fileio.getMonsterFactory(
                          fileio.getFile("monsters.dat"))
-    
-    if LOAD_FROM_SAVE:
-        (player, floor) = fileio.restore_save("John Stenibeck.sav")
-        curlev = mapgen.randomLevel(floor, player, mainMonsterFactory)
-    elif LOAD_FROM_RANDOM_DUNGEON:
+
+    try:
+        save_data = fileio.restore_save("John Stenibeck.sav")
+    except IOError:
+# No save; load from a random dungeon instead.
         player = dude.Player("John Stenibeck", (40, 40))
         curlev = mapgen.randomLevel(1, player, mainMonsterFactory)
     else:
-        floorlinelist = fileio.getFile("floors.dat")
-        curlev = fileio.getFloor(floorlinelist, 0, mainMonsterFactory)
-        
-        player = dude.Player("John Stenibeck", (15, 4))
-        curlev.addPlayer(player)
+        (player, floor) = save_data
+        curlev = mapgen.randomLevel(floor, player, mainMonsterFactory)
 
     display.init()
     display.display_main_screen(curlev.getFOVArray(),
