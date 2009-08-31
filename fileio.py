@@ -4,12 +4,36 @@ Deals with file input, output, and parsing.
 
 from __future__ import with_statement
 
+import cPickle
+
 import dude
 import level
 import symbol
 import coordinates
 import log
 import os
+
+def save_game(player, floor):
+    """
+    Save the game state of a player traveling upstairs.
+
+    player - the player to be saved.
+    floor - the floor to which the player is traveling.
+    """
+
+    with open("%s.sav" % player.name, 'w') as save_file:
+        cPickle.dump((player, floor), save_file, 0)
+
+def restore_save(filename):
+    """
+    Restore the game state of a player traveling upstairs.
+
+    Returns: The tuple (player, floor), where player is the player traveling
+        upstairs and floor is said player's new floor.
+    """
+
+    with open(filename, 'r') as save_file:
+        return cPickle.load(save_file)
 
 def restoreSave(filename, monster_factory, delete_save):
     """

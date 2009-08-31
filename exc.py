@@ -10,6 +10,9 @@ exception thrown can identify said parameter.
 class LevelChange(Exception):
     """Raised when the player moves up a level."""
 
+class SavingLevelChange(Exception):
+    """Raised when the player tries to save the game when moving up a level."""
+
 class InvalidDataWarning(RuntimeWarning):
     """
     Raised when a dubious situation arises from outside data.

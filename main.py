@@ -21,6 +21,7 @@ import fileio
 import mapgen
 import action
 import exc
+import cPickle
 
 import log
 
@@ -29,8 +30,8 @@ def main(win = None):
                          fileio.getFile("monsters.dat"))
     
     if LOAD_FROM_SAVE:
-        save = fileio.restoreSave("save.dat", mainMonsterFactory, False)
-        curlev = save[0]
+        (player, floor) = fileio.restore_save("John Stenibeck.sav")
+        curlev = mapgen.randomLevel(floor, player, mainMonsterFactory, floor)
     elif LOAD_FROM_RANDOM_DUNGEON:
         player = dude.Player("John Stenibeck", (40, 40))
         curlev = mapgen.randomLevel(1, player, mainMonsterFactory, 1)
@@ -57,6 +58,14 @@ def main(win = None):
             curlev.player.levelUp()
             curlev.player.clearMemory()
             curlev.messages.append("Welcome to the next floor!")
+        except exc.SavingLevelChange:
+            saved_player = curlev.player
+            new_floor = curlev.floor + 1
+            saved_player.levelUp()
+            saved_player.clearMemory()
+            saved_player.currentLevel = None
+            fileio.save_game(saved_player, new_floor)
+            return
 
 def entry():
     main()

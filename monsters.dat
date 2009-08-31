@@ -1,7 +1,7 @@
 <MONSTER>
 name=boxer
 glyph=b
-hp=14
+hp=16
 atk=15
 def=100
 speed=72
@@ -52,12 +52,12 @@ two_square_thrower
 <MONSTER>
 name=archer
 glyph=a
-hp=16
+hp=24
 atk=13
 def=120
 speed=72
 ai=RANGEDAPPROACH
-level=4
+level=5
 r=255
 g=255
 b=255
@@ -76,7 +76,7 @@ atk=13
 def=100
 speed=72
 ai=CLOSE
-level=5
+level=6
 r=200
 g=20
 b=20
@@ -92,7 +92,7 @@ atk=15
 def=100
 speed=36
 ai=CLOSE
-level=6
+level=7
 r=255
 g=255
 b=0
@@ -103,12 +103,12 @@ specfreq=0
 <MONSTER>
 name=q.statue
 glyph=o
-hp=1
+hp=10
 atk=0
 def=50
 speed=288
 ai=STATUE
-level=1
+level=4
 r=0
 g=127
 b=0

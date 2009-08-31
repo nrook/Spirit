@@ -355,14 +355,16 @@ class Player(Dude):
                 sys.exit(0)
 # If the key is the save key, ask if the player wants to save, and do so.
             elif key == kp.SAVE:
-                decision = kb.boolean_question(self.currentLevel.messages,
-                    "Do you really want to save and quit the game?")
-                if decision:
-                    fileio.outputSave(self.currentLevel, "save.dat")
-                    sys.exit(0)
+                if self.currentLevel.elements[self.coords] == level.UPSTAIRS_GLYPH:
+                    decision = kb.boolean_question(self.currentLevel.messages,
+                        "Do you really want to save and quit the game?")
+                    if decision:
+                        raise exc.SavingLevelChange()
+                    else:
+                        self.currentLevel.messages.say("Never mind, then.")
+                        return action.DoNothing()
                 else:
-                    self.currentLevel.messages.say("Never mind, then.")
-                    return action.DoNothing()
+                    self.currentLevel.messages.say("You can only save when on the stairs (<).")
 # If the key is the wait key, wait.
             elif key == kp.WAIT:
                 return action.Wait(self)
