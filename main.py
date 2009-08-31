@@ -7,6 +7,8 @@ USE_PROFILER = False
 if USE_PROFILER:
     import cProfile
 
+import cPickle
+
 import tcod_display as display
 import level
 import dude
@@ -17,7 +19,7 @@ import fileio
 import mapgen
 import action
 import exc
-import cPickle
+import kb
 
 import log
 
@@ -58,6 +60,10 @@ def main(win = None):
             saved_player.clearMemory()
             saved_player.currentLevel = None
             fileio.save_game(saved_player, new_floor)
+            return
+        except exc.PlayerDeath:
+            curlev.messages.say("You die.")
+            kb.pause(curlev.messages)
             return
 
 def entry():

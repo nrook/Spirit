@@ -420,10 +420,13 @@ class Player(Dude):
                             self.currentLevel.messages.say("There's something in the way!")
                             return action.DoNothing()
                     elif card_to_use.action_code == "ARROW":
+                        del self.deck.hand[card_id]
                         return action.FireArrow(self, direction_of_target_square, 12)
                     elif card_to_use.action_code == "HASTE":
+                        del self.deck.hand[card_id]
                         return action.HasteMonster(self, self, 12)
                     elif card_to_use.action_code == "HASTEALL":
+                        del self.deck.hand[card_id]
                         return action.HasteAll(self, 8)
                     assert False
                 assert False
@@ -443,8 +446,7 @@ class Player(Dude):
         self.deck.randomInsert(cards.mon_card(mon))
     
     def die(self):
-        print "Ack!  You died!"
-        sys.exit()
+        raise exc.PlayerDeath()
     
     def isPlayer(self):
         """Returns True if this Dude is the player, False otherwise."""

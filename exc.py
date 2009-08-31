@@ -13,6 +13,9 @@ class LevelChange(Exception):
 class SavingLevelChange(Exception):
     """Raised when the player tries to save the game when moving up a level."""
 
+class PlayerDeath(Exception):
+    """Raised when the player dies."""
+
 class InvalidDataWarning(RuntimeWarning):
     """
     Raised when a dubious situation arises from outside data.
