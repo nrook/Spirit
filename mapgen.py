@@ -201,7 +201,7 @@ def populate_level(pop_level, monster_fact, dlvl):
                 pop_level.addDude(monster_to_be_made, monster_coords)
                 monster_has_been_created = True
 
-def randomLevel(floor, player, monster_fact, dlvl):
+def randomLevel(floor, player, monster_fact):
     """
     If no player is supplied, the player slot is just left empty.
     """
@@ -224,7 +224,7 @@ def randomLevel(floor, player, monster_fact, dlvl):
     if player is not None:
         ret_level.addPlayer(player, entrance_coords)
     
-    populate_level(ret_level, monster_fact, dlvl)
+    populate_level(ret_level, monster_fact, floor)
 
     return ret_level
     

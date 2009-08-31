@@ -2,6 +2,9 @@
 Deals with file input, output, and parsing.
 """
 
+# This file, before commit 67d519e, contained (non-working) code to create a
+# predesigned level from a file.
+
 from __future__ import with_statement
 
 import cPickle
