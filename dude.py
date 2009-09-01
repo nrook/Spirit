@@ -385,6 +385,20 @@ class Player(Dude):
                 else:
 # A move is illegal!
                     return action.DoNothing()
+            elif key in config.RUN_DIRECTION_SWITCH:
+                direction = config.RUN_DIRECTION_SWITCH[key]
+                target = coordinates.add(self.coords, direction)
+                if len(self.fov.dudes) != 0:
+                    self.currentLevel.messages.append("Not with enemies in view!")
+                    return action.DoNothing()
+                elif self.canMove(target):
+# If the player is stuck, he cannot move.
+                    if self.hasCondition("stuck"):
+                        self.currentLevel.messages.append("You are stuck and cannot move!")
+                        return action.DoNothing()
+                    else:
+                        self.giveCondition(cond.Running(direction))
+                        return action.Move(self, direction)
 # If the key is a card key, use the card.
             elif key in kb.card_values:
                 card_id = kb.card_values[key]

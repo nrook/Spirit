@@ -2,7 +2,7 @@
 Contains a bunch of constants and program-wide values.
 """
 
-WIZARD = False
+WIZARD = True
 
 DEFAULT_MAP_X_WIDTH = 80 #Default width of the entire screen
 DEFAULT_MAP_Y_WIDTH = 24 #Default height of the entire screen
@@ -26,6 +26,16 @@ DIRECTION_SWITCH =  {
                     kp.E: (1, 0),
                     kp.NE: (1, -1),
                     kp.N: (0, -1)}
+
+RUN_DIRECTION_SWITCH = {
+                       kp.RNW: (-1, -1),
+                       kp.RW: (-1, 0),
+                       kp.RSW: (-1, 1),
+                       kp.RS: (0, 1),
+                       kp.RSE: (1, 1),
+                       kp.RE: (1, 0),
+                       kp.RNE: (1, -1),
+                       kp.RN: (0, -1)}
 
 import symbol
 

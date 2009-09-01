@@ -3,6 +3,7 @@ Governs 'conditions', status effects that modify a Dude's movement in some way.
 """
 
 import action
+import coordinates
 
 class Condition(object):
     """
@@ -109,3 +110,24 @@ class Resting(Condition):
             return None
         else:
             return action.Wait(dude_)
+
+class Running(Condition):
+    """
+    A condition in which the player moves in a specific direction.
+
+    This condition is interrupted if there is a monster in sight, or if there
+    is something blocking the player's path.
+    """
+
+    def __init__(self, direction):
+        Condition.__init__(self, 200, "running")
+        self.direction = direction
+
+    def getAction(self, dude_):
+        if dude_.canMove(coordinates.add(dude_.coords, self.direction)) \
+            and len(dude_.fov.dudes) == 0:
+
+            return action.Move(dude_, self.direction)
+        else:
+            self.time = -5
+            return None
