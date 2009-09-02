@@ -38,6 +38,7 @@ import exc
 import symbol
 import cond
 import config
+import kb
 
 CRIT_MULTIPLIER = 2
 KNOCK_DAMAGE = 5
@@ -243,6 +244,62 @@ class SpecialMelee(Action):
         do_special_melee(self.code, self.source, self.target)
         return self.source.speed
 
+class BombTick(Action):
+    """
+    An action representing a dude's TimeBomb condition ticking down.
+    """
+
+    def __init__(self, source):
+        Action.__init__(self, "BOMBTICK", None)
+        self.source = source
+
+    def do(self):
+        bomb_condition = self.source.conditions["timebomb"]
+        if bomb_condition.timer in (1, 2):
+            self.source.currentLevel.changeDudeGlyph(self.source,
+                symbol.Glyph(self.source.glyph.char, bomb_condition.GRENADE_COLORS[bomb_condition.timer]))
+        bomb_condition.timer -= 1
+        return self.source.speed
+
+class Detonate(Action):
+    """
+    An action representing a dude exploding, causing damage all around.
+    """
+
+    EXPLOSION_GLYPH = symbol.Glyph('#', (255, 0, 0))
+
+    def __init__(self, source):
+        Action.__init__(self, "DETONATE", None)
+        self.source = source
+        self.damage = self.source.max_HP / 2
+
+    def do(self):
+        level_ = self.source.currentLevel
+        level_.messages.append("%s goes off!" % self.source.getName())
+
+        explosion_radius = coordinates.radius(1, self.source.coords, level_.dimensions)
+
+        for coords in explosion_radius:
+            level_.addSolidEffect(coords, self.EXPLOSION_GLYPH)
+
+        for explosion_coords in explosion_radius:
+            if explosion_coords in level_.dudeLayer:
+                target = level_.dudeLayer[explosion_coords]
+                if target is not self.source:
+                    target.cur_HP -= self.damage
+                    target.currentLevel.removeSolidEffect(target.coords, self.EXPLOSION_GLYPH)
+                    kb.question(level_.messages,
+                        "%s is hurt by the explosion! (%d) --MORE--" % (target.getName(), self.damage))
+                    target.currentLevel.addSolidEffect(target.coords, self.EXPLOSION_GLYPH)
+                    target.checkDeath()
+
+        for coords in explosion_radius:
+            level_.removeSolidEffect(coords, self.EXPLOSION_GLYPH)
+
+        self.source.die()
+
+        return self.source.speed
+
 class Explode(Action):
     """
     An action representing an attack on a square and its adjacent squares.
@@ -328,17 +385,20 @@ class ThrowGrenade(Action):
     An action representing a grenade hurled short-range to a specific square.
     """
 
-    def __init__(self, source, target_coords, damage):
+    def __init__(self, source, target_coords):
         Action.__init__(self, "GRENTHROW", "%(SOURCE_NAME)s threw a grenade!")
         self.source = source
         self.target_coords = target_coords
-        self.damage = damage
 
     def do(self):
+        if self.target_coords in self.source.currentLevel.dudeLayer:
+            raise exc.ActionExecutionError("The destination of a grenade is occupied by a monster!")
+
         self.source.currentLevel.messages.append(self.message
             % {"SOURCE_NAME": self.source.getName()})
-        self.source.currentLevel.addEvent(events.TimedExplosion(self.source.currentLevel, self.target_coords, self.damage, 2), config.TURN_TICKS)
-
+        grenade = self.source.currentLevel.monster_factory.create("grenade")
+        grenade.giveCondition(cond.TimeBomb(3))
+        self.source.currentLevel.addDude(grenade, self.target_coords)
         return self.source.speed
 
 class HasteMonster(Action):

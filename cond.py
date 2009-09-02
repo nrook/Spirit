@@ -4,6 +4,7 @@ Governs 'conditions', status effects that modify a Dude's movement in some way.
 
 import action
 import coordinates
+import symbol
 
 class Condition(object):
     """
@@ -93,6 +94,37 @@ class Haste(Condition):
 
     def cancel(self, dude_):
         dude_.speed *= 2
+
+class TimeBomb(Condition):
+    """
+    A condition in which a dude explodes after a certain number of turns.
+    """
+    GRENADE_COLORS = {2 : (255, 255, 0),
+                      1 : (255, 65, 0),}
+    EXPLOSION_GLYPH = symbol.Glyph('#', (255, 0, 0))
+    def __init__(self, timer):
+        Condition.__init__(self, 0, "timebomb")
+        self.timer = timer
+        self.exploded = False
+
+    def passTurn(self):
+        pass
+
+    def isOver(self):
+        return self.exploded
+
+    def getAction(self, dude_):
+        assert self.timer >= 0
+        if self.timer == 0:
+            return action.Detonate(dude_)
+        else:
+            return action.BombTick(dude_)
+    
+    def timer_tick(self):
+        if self.timer == 1 or self.timer == 2:
+            dude_.currentLevel.changeDudeGlyph(dude_,
+                symbol.Glyph(dude_.glyph.char, self.GRENADE_COLORS[self.timer]))
+        self.timer -= 1
 
 class Resting(Condition):
     """

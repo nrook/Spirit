@@ -36,6 +36,7 @@ Legal monster tags:
     onto an empty or occupied space.
 "bug_monster": this monster should only be generated when a bug has occurred
     (i.e. there is no "real" monster available).
+"do_not_naturally_generate": this monster should never be naturally generated.
 """
 
 PLAYER_GLYPH = symbol.Glyph('@', (255, 255, 255))
@@ -312,7 +313,6 @@ class Player(Dude):
 
         Returns: True if the player has taken a turn; False otherwise.
         """
-
         self.resetFOV()
 
         display.refresh_screen(self.currentLevel)
@@ -429,7 +429,7 @@ class Player(Dude):
                         target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
                         if self.currentLevel.isEmpty(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
                             del self.deck.hand[card_id]
-                            return action.ThrowGrenade(self, target_square, 10)
+                            return action.ThrowGrenade(self, target_square)
                         else:
                             self.currentLevel.messages.say("There's something in the way!")
                             return action.DoNothing()
@@ -537,8 +537,14 @@ class Monster(Dude):
         Returns: True is the monster has taken a turn via this call,
             False otherwise.
         """
+        if self.name == "grenade":
         self.resetFOV()
-        cur_action = self.getAction()
+
+        cond_action = self.getConditionAction()
+        if cond_action is None:
+            cur_action = self.getAction()
+        else:
+            cur_action = cond_action
 
         for condition in self.conditions.values():
             cur_action = condition.modifyAction(cur_action)
@@ -557,6 +563,8 @@ class Monster(Dude):
 # special AI routines for weird monsters
         if self.AICode == "STATUE":
             return self.statue()
+        if self.AICode == "WAIT":
+            return action.Wait(self)
         
         if self.state == ais.FIGHTING:
             return self.fighting()
@@ -713,7 +721,6 @@ class Monster(Dude):
         else:
             return action.Wait(self)
 
-
     def closeToPlayer(self):
         """
         Pathfind to the player, and attack him if possible.
@@ -760,11 +767,11 @@ class Monster(Dude):
                 possible_targets = [coordinates.add(self.coords, i) for i in possible_directions if self.currentLevel.isEmpty(coordinates.add(self.coords, i))]
                 visible_targets = [coords for coords in possible_targets if coords in self.fov]
                 close_targets = [coords for coords in visible_targets if (coordinates.minimumPath(coords, self.currentLevel.player.coords) <= 1)]
-                actual_targets = [coords for coords in close_targets if not events.is_grenade_at_coords(coords, self.currentLevel)]
+                actual_targets = [coords for coords in close_targets if coords not in self.currentLevel.dudeLayer]
                 if len(actual_targets) == 0:
                     return None
                 final_target = rng.choice(actual_targets)
-                return action.ThrowGrenade(self, final_target, 10)
+                return action.ThrowGrenade(self, final_target)
             else:
                 return None
         elif "twelve_square_firer" in self.tags:
@@ -820,11 +827,12 @@ class Monster(Dude):
 
         return action.Wait(self)
 
-    
     def die(self):
         if self.spec != "NONE":
             self.currentLevel.player.obtainCard(self)
         self.currentLevel.kill(self)
+        if self.cur_HP > 0:
+            self.cur_HP = -300
 
 class MonsterFactory(list):
     """
@@ -879,7 +887,11 @@ class MonsterFactory(list):
         total = 0
         selection_list = []
         for i in self:
-            rarity = self.DLVL_RARITY[i.char_level - dlvl]
+            if "do_not_naturally_generate" in i.tags:
+                rarity = 0
+            else:
+                rarity = self.DLVL_RARITY[i.char_level - dlvl]
+
             if rarity != 0:
                 selection_list.append((rarity, i))
                 total += rarity

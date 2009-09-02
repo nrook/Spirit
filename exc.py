@@ -31,6 +31,11 @@ class PathfindingError(StandardError):
     Raised when a pathfinding routine fails in some way.
     """
 
+class ActionExecutionError(StandardError):
+    """
+    Raised when the level state prevents an action from being executed.
+    """
+
 def check_in_array(coord, shape, name = "The coordinates"):
     """
     Raise a ValueError if coord lies outside the array whose shape is shape.

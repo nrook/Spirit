@@ -102,7 +102,7 @@ specfreq=0
 
 <MONSTER>
 name=q.statue
-glyph=o
+glyph=q
 hp=10
 atk=0
 def=50
@@ -114,6 +114,25 @@ g=127
 b=0
 spec=QUICKEN
 specfreq=0
+[ENDSEC]
+
+<MONSTER>
+name=grenade
+glyph=o
+hp=20
+atk=0
+def=100
+speed=72
+ai=WAIT
+level=5
+r=65
+g=255
+b=0
+spec=NONE
+specfreq=0
+[TAG]
+do_not_naturally_generate
+[END]
 [ENDSEC]
 
 <MONSTER>

@@ -12,6 +12,7 @@ import symbol
 import events
 import effects
 import queue
+import dude
 
 ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
 CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
@@ -57,7 +58,7 @@ class Level(object):
     __DUNGEON_HEIGHT = 8
     
     def __init__(self, 
-        dimensions = (80, 24), floor = 1, dude_layer = None, elements = None, dungeon = None):
+        dimensions, floor, dude_layer, elements, dungeon, monster_factory):
         """
         Create a Level.
 
@@ -81,6 +82,7 @@ class Level(object):
         self.dimensions = dimensions
         self.dudeLayer = dude_layer
         self.effects = effects.EffectsMap(dimensions)
+        self.monster_factory = monster_factory
         self.player = None
         self.messages = msg.MessageBuffer(config.MESSAGES_DIMENSIONS)
         self.__composite_map = arrays.empty_str_array(dimensions)
@@ -219,7 +221,7 @@ class Level(object):
 
         return
     
-    def addDude(self, addedDude, coords = None):
+    def addDude(self, addedDude, coords = None, addToQueue = True):
         """
         Add a dude to the dudeLayer of this level, modifying all accordingly.
         
@@ -241,14 +243,36 @@ class Level(object):
         addedDude.setCoords(dudeCoords)
         self.dudeLayer.append(addedDude)
         self.__addCharacterToMap(addedDude.glyph, dudeCoords, self.__DUDE_HEIGHT)
+        if addToQueue:
+            self.__queue.put(addedDude, self.time)
     
     def addPlayer(self, addedPlayer, coords = None):
         """
         Add a dude to this Level, and set it as the current player here.
+
+        Note that the new player is not put on the queue!
         """
         self.player = addedPlayer
         self.dudeLayer.player = addedPlayer
-        self.addDude(addedPlayer, coords)
+        self.addDude(addedPlayer, coords, False)
+
+    def changeDudeGlyph(self, changed_dude, new_glyph):
+        """
+        Change the glyph of a dude.
+
+        changed_dude - a dude on this level, whose glyph will be changed.
+        new_glyph - the new glyph for this dude.
+        """
+        assert self.dudeLayer[changed_dude.coords] is changed_dude
+
+        self.__delCharacterFromMap(changed_dude.coords, self.__DUDE_HEIGHT)
+        changed_dude.glyph = new_glyph
+        self.__addCharacterToMap(changed_dude.glyph, changed_dude.coords, self.__DUDE_HEIGHT)
+
+    def moveDude(self, movedDude, moveCoords):
+        self.__delCharacterFromMap(movedDude.coords, self.__DUDE_HEIGHT)
+        self.dudeLayer.moveObject(movedDude, moveCoords)
+        self.__addCharacterToMap(movedDude.glyph, movedDude.coords, self.__DUDE_HEIGHT)
     
     def getPlayer(self):
         """Returns the player dude."""
@@ -448,7 +472,6 @@ class Level(object):
 # the actor gets to move again.  (If the number of ticks is 0, things get weird,
 # so this method just asks for another action instead of going through the
 # queue.
-
         actor_ticks = 0
         while actor_ticks == 0 and next_actor.exists():
             actor_ticks = next_actor.act()

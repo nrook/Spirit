@@ -198,7 +198,7 @@ def populate_level(pop_level, monster_fact, dlvl):
             if pop_level.dungeonGlyph(monster_coords) in level.PASSABLE_TERRAIN and \
                 monster_coords not in pop_level.dudeLayer:
                 
-                pop_level.addDude(monster_to_be_made, monster_coords)
+                pop_level.addDude(monster_to_be_made, monster_coords, False)
                 monster_has_been_created = True
 
 def randomLevel(floor, player, monster_fact):
@@ -219,7 +219,7 @@ def randomLevel(floor, player, monster_fact):
     elements[exit_coords] = level.UPSTAIRS_GLYPH
     dungeon[exit_coords] = level.ROOM_INTERIOR_GLYPH
     
-    ret_level = level.Level(dungeon.shape, floor, None, elements, dungeon)
+    ret_level = level.Level(dungeon.shape, floor, None, elements, dungeon, monster_fact)
     
     if player is not None:
         ret_level.addPlayer(player, entrance_coords)
