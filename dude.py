@@ -285,11 +285,12 @@ class Player(Dude):
                            "self.char_level":self.char_level,
                            "self.cur_HP":self.cur_HP,
                            "self.max_HP":self.max_HP,
-                           "self.deck":self.deck})
+                           "self.deck":self.deck,
+                           "self.conditions":self.conditions})
 
         self.__sidebar = Sidebar(self.name, self.currentLevel.floor,
                                  self.char_level, self.cur_HP, self.max_HP,
-                                 self.deck)
+                                 self.deck, self.conditions.values())
     
     def getName(self, commonNounPreceder = "the"):
         return "you"
@@ -537,7 +538,6 @@ class Monster(Dude):
         Returns: True is the monster has taken a turn via this call,
             False otherwise.
         """
-        if self.name == "grenade":
         self.resetFOV()
 
         cond_action = self.getConditionAction()
@@ -944,7 +944,7 @@ class Sidebar(object):
     A list of information, on the side of the screen, about the player.
     """
 
-    def __init__(self, name, floor, char_level, cur_HP, max_HP, deck):
+    def __init__(self, name, floor, char_level, cur_HP, max_HP, deck, conditions):
         """
         Initialize a Sidebar with the corresponding values.
 
@@ -953,6 +953,8 @@ class Sidebar(object):
         char_level - an integer representing the player's character level.
         cur_HP - an integer; the player's current HP.
         max_HP - an integer; the player's maximum HP.
+        deck - the deck containing the player's cards.
+        conditions - a list (NOT A DICTIONARY) of the player's conditions.
         """
 
         self.__array = arrays.empty_str_array(config.STATUS_DIMENSIONS)
@@ -964,12 +966,22 @@ class Sidebar(object):
         arrays.print_str_to_end_of_line((1, 4), 
                                         "HP: %d(%d)" % (cur_HP, max_HP),
                                         self.__array)
-        arrays.print_str_to_end_of_line((1, 6),
+
+        condition_names = ""
+        for c in conditions:
+            c_name = c.getDisplayName()
+            if c_name != "":
+                if condition_names == "":
+                    condition_names = c_name
+                else:
+                    condition_names = " ".join((condition_names, c_name))
+        arrays.print_str_to_end_of_line((1, 5), condition_names, self.__array)
+
+        arrays.print_str_to_end_of_line((1, 7),
             "Deck(%d):" % len(deck.library), self.__array)
         for i in range(len(deck.hand)):
-            arrays.print_str_to_end_of_line((1, 7 + i),
+            arrays.print_str_to_end_of_line((1, 8 + i),
                 "(%d) %s" % (i+1, deck.hand[i].monster_name), self.__array)
-        
         return
 
     def getArray(self):

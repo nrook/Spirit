@@ -22,6 +22,15 @@ class Condition(object):
         self.time = time
         self.name = name
 
+    def getDisplayName(self):
+        """
+        Get the name of this condition used to display it on the Sidebar.
+
+        If a condition does not want to be displayed on the Sidebar, this method
+        should return an empty string.
+        """
+        return self.name
+
     def passTurn(self):
         """
         Indicate to the condition that a turn has passed.
@@ -136,6 +145,9 @@ class Resting(Condition):
     def __init__(self):
         Condition.__init__(self, 200, "resting")
 
+    def getDisplayName(self):
+        return ""
+
     def getAction(self, dude_):
         if len(dude_.fov.dudes) > 0 or dude_.cur_HP >= dude_.max_HP:
             self.time = -5
@@ -154,6 +166,9 @@ class Running(Condition):
     def __init__(self, direction):
         Condition.__init__(self, 200, "running")
         self.direction = direction
+
+    def getDisplayName(self):
+        return ""
 
     def getAction(self, dude_):
         if dude_.canMove(coordinates.add(dude_.coords, self.direction)) \
