@@ -26,16 +26,19 @@ import log
 def main(win = None):
     mainMonsterFactory = fileio.getMonsterFactory(
                          fileio.getFile("monsters.dat"))
+    floor_defs = fileio.getFloorDefinitions(
+                 mainMonsterFactory,
+                 fileio.getFile("levels.dat"))
 
     try:
         save_data = fileio.restore_save("John Stenibeck.sav")
     except IOError:
 # No save; load from a random dungeon instead.
         player = dude.Player("John Stenibeck", (40, 40))
-        curlev = mapgen.randomLevel(1, player, mainMonsterFactory)
+        curlev = mapgen.randomLevel(floor_defs[1], player)
     else:
         (player, floor) = save_data
-        curlev = mapgen.randomLevel(floor, player, mainMonsterFactory)
+        curlev = mapgen.randomLevel(floor_defs[floor], player)
 
     display.init()
     display.display_main_screen(curlev.getFOVArray(),
@@ -49,7 +52,7 @@ def main(win = None):
         except exc.LevelChange:
             saved_player = curlev.player
             new_floor = curlev.floor + 1
-            curlev = mapgen.randomLevel(new_floor, player, mainMonsterFactory)
+            curlev = mapgen.randomLevel(floor_defs[new_floor], player)
             curlev.player.levelUp()
             curlev.player.clearMemory()
             curlev.messages.append("Welcome to the next floor!")

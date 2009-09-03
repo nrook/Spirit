@@ -26,6 +26,11 @@ class InvalidDataWarning(RuntimeWarning):
     "NONE" special ability.
     """
 
+class InvalidDataError(StandardError):
+    """
+    Raised when an untenable situation arises from outside data.
+    """
+
 class PathfindingError(StandardError):
     """
     Raised when a pathfinding routine fails in some way.
@@ -34,6 +39,11 @@ class PathfindingError(StandardError):
 class ActionExecutionError(StandardError):
     """
     Raised when the level state prevents an action from being executed.
+    """
+
+class TagLocationError(InvalidDataError):
+    """
+    Raised when a tag cannot be found in a file.
     """
 
 def check_in_array(coord, shape, name = "The coordinates"):

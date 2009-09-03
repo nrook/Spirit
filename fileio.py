@@ -8,13 +8,14 @@ Deals with file input, output, and parsing.
 from __future__ import with_statement
 
 import cPickle
+import os
 
 import dude
 import level
 import symbol
 import coordinates
+import exc
 import log
-import os
 
 def save_game(player, floor):
     """
@@ -70,7 +71,7 @@ def getMonsterFactory(linelist, initline = 0):
     while 1: #continue loop until out of tags
         try:
             curline = findTag(linelist, "<MONSTER>", curline)
-        except ValueError:
+        except exc.TagLocationError:
             break
         else:
             new_monster = getMonster(linelist, curline)
@@ -87,13 +88,13 @@ def getMonster(linelist, initline = 0):
     Given the starting line, translate a text-file description into a Monster.
     """
     
-    if linelist[0] != "<MONSTER>":
+    if linelist[initline] != "<MONSTER>":
         raise ValueError("Monster data begins with %s, not <MONSTER>." % linelist[initline])
     
     lastline = findTag(linelist, "[ENDSEC]", initline)
-    try: #get tags - findTag throws ValueError if there's no tag section
+    try:
         tagline = findTag(linelist, "[TAG]", initline, lastline)
-    except ValueError:
+    except exc.TagLocationError:
         tags = []
     else:
         endline = findTag(linelist, "[END]", tagline, lastline)
@@ -116,19 +117,77 @@ def getMonster(linelist, initline = 0):
                         None
                         )
 
+def getFloorDefinitions(monster_factory, linelist, initline = 0):
+    """
+    Return a dictionary containing the floor definitions of each floor.
+
+    The dictionary is of the form {floor_number:floor_definition, etc.}
+    """
+    curline = initline
+    floor_dict = {}
+    while 1: # continue loop until out of tags
+        try:
+            curline = findTag(linelist, "<LEVEL>", curline)
+        except exc.TagLocationError:
+            break
+        else:
+            new_floor_def = getFloorDef(monster_factory, linelist, curline)
+            floor_dict[new_floor_def.floor] = new_floor_def
+        curline += 1
+
+    return floor_dict
+
+def getFloorDef(monster_factory, linelist, initline = 0):
+    """
+    Translate a given text description of a floor into a FloorDefinition.
+    """
+    
+    if linelist[initline] != "<LEVEL>":
+        raise ValueError("Floor data begins with %s, not <LEVEL>." % linelist[initline])
+    
+    lastline = findTag(linelist, "[ENDSEC]", initline)
+    try:
+        monstersline = findTag(linelist, "[MONSTERS]", initline, lastline)
+    except exc.TagLocationError:
+        raise exc.InvalidDataError("No \"[MONSTERS]\" line found in levels.dat between %d and %d" % (initline, lastline))
+    else:
+        endline = findTag(linelist, "[END]", monstersline, lastline)
+        raritylist = [(int(j), i) for (i, j) in labelDict(linelist, monstersline, endline, ':').items()]
+    
+    attrDict = labelDict(linelist, initline + 1, lastline)
+
+    return level.FloorDefinition(int(attrDict["floor"]),
+                                 raritylist,
+                                 monster_factory)
+    
+    return dude.Monster(attrDict["name"],
+                        None, 
+                        symbol.Glyph(attrDict["glyph"], (int(attrDict["r"]), int(attrDict["g"]), int(attrDict["b"]))),
+                        attrDict["ai"],
+                        int(attrDict["speed"]),
+                        int(attrDict["hp"]),
+                        tags,
+                        int(attrDict["atk"]),
+                        int(attrDict["def"]),
+                        int(attrDict["level"]),
+                        attrDict["spec"],
+                        int(attrDict["specfreq"]),
+                        None
+                        )
+
 def findTag(linelist, tag, startLine = 0, dontGoPast = None):
     """
     Find the first line that contains only the tag given.  Returns its index.
     
     findTag will check every line from startLine to but not including
-    dontGoPast.  findTag raises a ValueError exception if the tag isn't there.
+    dontGoPast.  findTag raises a TagLocationError if the tag isn't there.
     """
     
     for i in range(startLine, dontGoPast if dontGoPast is not None else len(linelist)):
         if tag == linelist[i]:
             return i
     
-    raise ValueError("%s not found in list provided; try loosening range." % tag)
+    raise exc.TagLocationError("%s not found in list provided; try loosening range." % tag)
 
 def labelDict(linelist, startLine = 0, endLine = None, separator = '='):
     """

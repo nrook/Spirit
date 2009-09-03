@@ -13,6 +13,7 @@ import events
 import effects
 import queue
 import dude
+import rng
 
 ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
 CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
@@ -58,19 +59,20 @@ class Level(object):
     __DUNGEON_HEIGHT = 8
     
     def __init__(self, 
-        dimensions, floor, dude_layer, elements, dungeon, monster_factory):
+        dimensions, floor, dude_layer, elements, dungeon, definition):
         """
         Create a Level.
 
         dimensions - the actual dimensions of the Level, in (x, y) form.
         floor - the height of the Level in comparison to other Levels;
             an integer.
-        layers - a list (or tuple, etc.) with only one element: a DudeLayer.
+        dude_layer - a DudeLayer.  (If None, a DudeLayer will be created.)
         elements - an array representing the elements of the Level: terrain
             features which are overlaid upon the regular terrain, but which
             cannot be picked up like items.
         dungeon - an array representing the dungeon: the walls, floors, and
             other terrain.
+        definition - a FloorDefinition for this Level.
         """
 
         if dude_layer is None:
@@ -82,7 +84,7 @@ class Level(object):
         self.dimensions = dimensions
         self.dudeLayer = dude_layer
         self.effects = effects.EffectsMap(dimensions)
-        self.monster_factory = monster_factory
+        self.definition = definition
         self.player = None
         self.messages = msg.MessageBuffer(config.MESSAGES_DIMENSIONS)
         self.__composite_map = arrays.empty_str_array(dimensions)
@@ -602,6 +604,37 @@ class DudeLayer(Layer):
         removed.setCurrentLevel(None)
         # These lines is horribly inefficient; there's got to be a better way.
         del self[self.index(removed)]
+
+class FloorDefinition(object):
+    """
+    A floor's definition, which defines how it is randomly created.
+    """
+
+    def __init__(self, floor, rarities, monster_factory):
+        """
+        rarities - a sequence of tuples of the form (rarity, monster_name),
+            which determine how common each type of monster is on this floor.
+            Note that if a monster does not appear on this floor, it is not
+            necessary to include it in the rarity sequence.
+        monster_factory - a monster factory.
+        """
+        self.floor = floor
+        self.rarities = list(rarities)
+        self.monster_factory = monster_factory
+        self.total = sum([i for i,j in self.rarities])
+
+    def getRandomMonster(self):
+        """
+        Return a random monster created on this floor.
+        """
+        if self.total == 0 or len(self.rarities) == 0:
+            return self.monster_factory.getBuggyMonster()
+
+        random_number = rng.randInt(0, self.total - 1)
+        for r in self.rarities:
+            random_number -= r[0]
+            if random_number < 0:
+                return self.monster_factory.create(r[1])
 
 def empty_dungeon(dimensions):
     """

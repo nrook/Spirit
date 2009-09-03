@@ -396,7 +396,7 @@ class ThrowGrenade(Action):
 
         self.source.currentLevel.messages.append(self.message
             % {"SOURCE_NAME": self.source.getName()})
-        grenade = self.source.currentLevel.monster_factory.create("grenade")
+        grenade = self.source.currentLevel.definition.monster_factory.create("grenade")
         grenade.giveCondition(cond.TimeBomb(3))
         self.source.currentLevel.addDude(grenade, self.target_coords)
         return self.source.speed
