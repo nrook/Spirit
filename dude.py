@@ -248,7 +248,7 @@ class Player(Dude):
         if config.WIZARD:
             max_HP += 200
 
-        Dude.__init__(self, coords, PLAYER_GLYPH, speed, max_HP, currentLevel, name, 40, 100, ["proper_noun"], char_level)
+        Dude.__init__(self, coords, PLAYER_GLYPH, speed, max_HP, currentLevel, name, 8, 100, ["proper_noun"], char_level)
 
         if currentLevel is not None:
             self.__sidebar = Sidebar(name, currentLevel.floor, char_level, 

@@ -392,6 +392,7 @@ class ThrowGrenade(Action):
 
     def do(self):
         if self.target_coords in self.source.currentLevel.dudeLayer:
+            self.source.currentLevel.messages.append("The grenade bounces off %s and explodes!" % self.source.currentLevel.dudeLayer[target_coords])
             raise exc.ActionExecutionError("The destination of a grenade is occupied by a monster!")
 
         self.source.currentLevel.messages.append(self.message
@@ -541,8 +542,5 @@ def HP_on_level_gain():
     return rng.XdY(3, 3)
 
 def damage(attack_power, defense_modifier, attacker_level, defender_level):
-        expected_damage = float(attack_power) / 100
         defense_modifier = float(defense_modifier) / 100
-        level_modifier = 2 ** ((attacker_level - defender_level) / 11.0)
-        return int(expected_HP(attacker_level) * expected_damage *
-            defense_modifier * level_modifier)
+        return attack_power * defense_modifier

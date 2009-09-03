@@ -185,7 +185,7 @@ def populate_level(pop_level, floor_def):
     Populate a given level with monsters.
     """
 
-    NUMBER_OF_MONSTERS = 18
+    NUMBER_OF_MONSTERS = 9
     
     level_nwcorner = (0, 0)
     level_secorner = [dim - 1 for dim in pop_level.dimensions]

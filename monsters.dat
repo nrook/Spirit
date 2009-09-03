@@ -1,8 +1,8 @@
 <MONSTER>
 name=boxer
 glyph=b
-hp=16
-atk=15
+hp=15
+atk=5
 def=100
 speed=72
 ai=CLOSE
@@ -17,8 +17,8 @@ specfreq=50
 <MONSTER>
 name=lancer
 glyph=s
-hp=10
-atk=18
+hp=9
+atk=5
 def=100
 speed=72
 ai=CLOSE
@@ -34,7 +34,7 @@ specfreq=30
 name=grenadier
 glyph=g
 hp=38
-atk=5
+atk=0
 def=200
 speed=72
 ai=RANGEDAPPROACH
@@ -52,8 +52,8 @@ two_square_thrower
 <MONSTER>
 name=archer
 glyph=a
-hp=24
-atk=13
+hp=17
+atk=7
 def=120
 speed=72
 ai=RANGEDAPPROACH
@@ -71,8 +71,8 @@ twelve_square_firer
 <MONSTER>
 name=spider
 glyph=i
-hp=30
-atk=13
+hp=14
+atk=8
 def=100
 speed=72
 ai=CLOSE
@@ -87,8 +87,8 @@ specfreq=50
 <MONSTER>
 name=tiger
 glyph=c
-hp=50
-atk=15
+hp=30
+atk=12
 def=100
 speed=36
 ai=CLOSE
