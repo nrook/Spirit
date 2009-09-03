@@ -275,12 +275,13 @@ class Detonate(Action):
 
     def do(self):
         level_ = self.source.currentLevel
-        level_.messages.append("%s goes off!" % self.source.getName())
 
         explosion_radius = coordinates.radius(1, self.source.coords, level_.dimensions)
 
         for coords in explosion_radius:
             level_.addSolidEffect(coords, self.EXPLOSION_GLYPH)
+
+        kb.question(level_.messages, "%s explodes (%d)! --MORE--" % (self.source.getName(), self.damage))
 
         for explosion_coords in explosion_radius:
             if explosion_coords in level_.dudeLayer:
@@ -288,8 +289,6 @@ class Detonate(Action):
                 if target is not self.source:
                     target.cur_HP -= self.damage
                     target.currentLevel.removeSolidEffect(target.coords, self.EXPLOSION_GLYPH)
-                    kb.question(level_.messages,
-                        "%s is hurt by the explosion! (%d) --MORE--" % (target.getName(), self.damage))
                     target.currentLevel.addSolidEffect(target.coords, self.EXPLOSION_GLYPH)
                     target.checkDeath()
 
@@ -392,8 +391,9 @@ class ThrowGrenade(Action):
 
     def do(self):
         if self.target_coords in self.source.currentLevel.dudeLayer:
-            self.source.currentLevel.messages.append("The grenade bounces off %s and explodes!" % self.source.currentLevel.dudeLayer[target_coords])
-            raise exc.ActionExecutionError("The destination of a grenade is occupied by a monster!")
+            target = self.source.currentLevel.dudeLayer[self.target_coords]
+            self.source.currentLevel.messages.append("The grenade lands right on the %s!" % target.getName())
+            return Detonate(target).do()
 
         self.source.currentLevel.messages.append(self.message
             % {"SOURCE_NAME": self.source.getName()})
@@ -536,10 +536,9 @@ def expected_HP(dude_level):
 def HP_on_level_gain():
     """Determines what maximum HP increase the player gets on level gain.
     
-    Currently, this HP boost should be between 3 and 9, and should
-    most commonly be 6."""
+    Currently, this HP boost should be 2."""
     
-    return rng.XdY(3, 3)
+    return 2
 
 def damage(attack_power, defense_modifier, attacker_level, defender_level):
         defense_modifier = float(defense_modifier) / 100
