@@ -64,11 +64,11 @@ tiger:1
 [ENDSEC]
 
 <LEVEL>
-floor=8
+floor=7
 [MONSTERS]
-boxer:3
+boxer:2
 archer:4
 spider:4
-tiger:4
+tiger:5
 [END]
 [ENDSEC]
