@@ -57,11 +57,3 @@ def randomPointInRect(nw_corner, se_corner):
     """
     
     return (randInt(nw_corner[0], se_corner[0]), randInt(nw_corner[1], se_corner[1]))
-
-if __name__ == "__main__":
-    # Test suite.
-    initialize()
-    print randint(1, 10)
-    print randint(1, 10)
-    print randint(1, 10)
-    print choice((5, 10, 15, 20, 25))

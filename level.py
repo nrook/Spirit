@@ -649,18 +649,3 @@ def empty_elements(dimensions):
     """
     
     return symbol.glyphMap(dimensions)
-
-if __name__ == "__main__":
-    import dude
-    import symbol
-    import fileio
-    
-    fullPanelDim = (7, 6)
-    subPanelUpLeft = (-2, -1)
-    subPanelDownRight = (7, 8)
-    
-    linelist = fileio.getFile("tinytest.txt")
-    dungeon = fileio.getDungeon(linelist, fullPanelDim, 0)
-    print dungeon
-    print "\nrectPanel"
-    print dungeon.rectPanel(subPanelUpLeft, subPanelDownRight)
