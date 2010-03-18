@@ -400,51 +400,57 @@ class Player(Dude):
                     else:
                         self.giveCondition(cond.Running(direction))
                         return action.Move(self, direction)
-# If the key is a card key, use the card.
-            elif key in kb.card_values:
-                card_id = kb.card_values[key]
-                
-                if card_id >= len(self.deck.hand):
+# If the key is 'fire', fire a card.
+            elif key == kp.FIRE:
+                card_key = kb.question(self.currentLevel.messages,
+                               "Which card would you like to fire?")
+                if not (card_key in kb.card_values):
+                    self.currentLevel.messages.say("That isn't a card.")
                     return action.DoNothing()
-                card_to_use = self.deck.hand[card_id]
+                else:
+                    card_id = kb.card_values[card_key]
+                    if card_id >= len(self.deck.hand):
+                        self.currentLevel.messages.say("That isn't a card.")
+                        return action.DoNothing()
+                    card_to_use = self.deck.hand[card_id]
 
 # If the card is directional, get the direction to use it in.
-                if card_to_use.is_directional:
-                    direction_of_target_square = kb.direction_question(
-                        self.currentLevel.messages,
-                        "In which direction would you like to use the %s card?"
-                        % card_to_use.ability_name)
-                if card_to_use.is_melee:
-                    target_square = coordinates.add(self.coords, direction_of_target_square)
-                    if target_square in self.currentLevel.dudeLayer:
-                        del self.deck.hand[card_id]
-                        return action.SpecialMelee(self,
-                            self.currentLevel.dudeLayer[target_square],
-                            card_to_use.action_code)
-                    else:
-                        self.currentLevel.messages.say("You whiff completely!")
-                        del self.deck.hand[card_id]
-                        return action.Wait(self)
-                else:
-                    if card_to_use.action_code == "GRENTHROW":
-                        target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
-                        if self.currentLevel.isEmpty(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
+                    if card_to_use.is_directional:
+                        direction_of_target_square = kb.direction_question(
+                            self.currentLevel.messages,
+                            "In which direction would you like to use the %s card?"
+                            % card_to_use.ability_name)
+                    if card_to_use.is_melee:
+                        target_square = coordinates.add(self.coords, direction_of_target_square)
+                        if target_square in self.currentLevel.dudeLayer:
                             del self.deck.hand[card_id]
-                            return action.ThrowGrenade(self, target_square)
+                            return action.SpecialMelee(self,
+                                self.currentLevel.dudeLayer[target_square],
+                                card_to_use.action_code)
                         else:
-                            self.currentLevel.messages.say("There's something in the way!")
-                            return action.DoNothing()
-                    elif card_to_use.action_code == "ARROW":
-                        del self.deck.hand[card_id]
-                        return action.FireArrow(self, direction_of_target_square, 12)
-                    elif card_to_use.action_code == "HASTE":
-                        del self.deck.hand[card_id]
-                        return action.HasteMonster(self, self, 12)
-                    elif card_to_use.action_code == "HASTEALL":
-                        del self.deck.hand[card_id]
-                        return action.HasteAll(self, 8)
+                            self.currentLevel.messages.say("You whiff completely!")
+                            del self.deck.hand[card_id]
+                            return action.Wait(self)
+                    else:
+                        if card_to_use.action_code == "GRENTHROW":
+                            target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
+                            if self.currentLevel.isEmpty(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
+                                del self.deck.hand[card_id]
+                                return action.ThrowGrenade(self, target_square)
+                            else:
+                                self.currentLevel.messages.say("There's something in the way!")
+                                return action.DoNothing()
+                        elif card_to_use.action_code == "ARROW":
+                            del self.deck.hand[card_id]
+                            return action.FireArrow(self, direction_of_target_square, 12)
+                        elif card_to_use.action_code == "HASTE":
+                            del self.deck.hand[card_id]
+                            return action.HasteMonster(self, self, 12)
+                        elif card_to_use.action_code == "HASTEALL":
+                            del self.deck.hand[card_id]
+                            return action.HasteAll(self, 8)
+                        assert False
                     assert False
-                assert False
             elif key == kp.REST:
 # Give the player the "rest" status, so she waits until healed fully.
                 self.giveCondition(cond.Resting())

@@ -47,7 +47,8 @@ class kp:
     CARD_7,
     CANCEL,
     REST,
-    ) = range(32)
+    FIRE,
+    ) = range(33)
 
 mainScreenTranslationTable = {
 ord('k') : kp.N,
@@ -77,7 +78,8 @@ ord('4') : kp.CARD_4,
 ord('5') : kp.CARD_5,
 ord('6') : kp.CARD_6,
 ord('7') : kp.CARD_7,
-ord('r') : kp.REST
+ord('r') : kp.REST,
+ord('f') : kp.FIRE,
 }
 
 booleanQuestionTranslationTable = {
@@ -113,7 +115,7 @@ card_values = {
     kp.CARD_4 : 3,
     kp.CARD_5 : 4,
     kp.CARD_6 : 5,
-    kp.CARD_7 : 6
+    kp.CARD_7 : 6,
 }
 
 DIRECTION_SWITCH =  {
