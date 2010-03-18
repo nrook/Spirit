@@ -71,13 +71,6 @@ ord('q') : kp.QUIT,
 ord('.') : kp.WAIT,
 ord('S') : kp.SAVE,
 ord('<') : kp.UP,
-ord('1') : kp.CARD_1,
-ord('2') : kp.CARD_2,
-ord('3') : kp.CARD_3,
-ord('4') : kp.CARD_4,
-ord('5') : kp.CARD_5,
-ord('6') : kp.CARD_6,
-ord('7') : kp.CARD_7,
 ord('r') : kp.REST,
 ord('f') : kp.FIRE,
 }
@@ -100,11 +93,23 @@ ord('h') : kp.W,
 ord('y') : kp.NW,
 }
 
-#Translation table name translation table.
+cardTranslationTable = {
+ord('1') : kp.CARD_1,
+ord('2') : kp.CARD_2,
+ord('3') : kp.CARD_3,
+ord('4') : kp.CARD_4,
+ord('5') : kp.CARD_5,
+ord('6') : kp.CARD_6,
+ord('7') : kp.CARD_7,
+}
+
+# Translation table name translation table,
+# used to select which translation table to use.
 tTables = {
 "main" : mainScreenTranslationTable,
 "boolean" : booleanQuestionTranslationTable,
-"direction" : directionTranslationTable
+"direction" : directionTranslationTable,
+"card" : cardTranslationTable,
 }
 
 # "Card switch"--maps card invocation keys to numbers, from 0 to 6.
@@ -200,6 +205,31 @@ def direction_question(messages, prompt):
             "direction")
     
     return DIRECTION_SWITCH[response_key]
+
+def card_question(messages, prompt, deck):
+    """
+    Ask for the player to select a card.
+
+    Returns the ID (0-6) of the card if an actual card is selected,
+    -1 otherwise.
+
+    messages - the MessageBuffer upon which the question is asked.
+    prompt - the message to be displayed to the player to prompt a response.
+    """
+
+    response_key = question(messages, prompt, "card")
+
+    if response_key == kp.NOTKEY:
+        messages.say("That is not a card.")
+        return -1
+
+# Now we are guaranteed that response_key is in card_values.
+    card_id = card_values[response_key]
+    if card_id >= len(deck.hand):
+        messages.say("That is not a card.")
+        return -1
+    else:
+        return card_id
 
 def pause(messages):
     """

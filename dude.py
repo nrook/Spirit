@@ -402,16 +402,12 @@ class Player(Dude):
                         return action.Move(self, direction)
 # If the key is 'fire', fire a card.
             elif key == kp.FIRE:
-                card_key = kb.question(self.currentLevel.messages,
-                               "Which card would you like to fire?")
-                if not (card_key in kb.card_values):
-                    self.currentLevel.messages.say("That isn't a card.")
+                card_id = kb.card_question(self.currentLevel.messages, 
+                                "Which card would you like to fire?",
+                                self.deck)
+                if card_id == -1:
                     return action.DoNothing()
                 else:
-                    card_id = kb.card_values[card_key]
-                    if card_id >= len(self.deck.hand):
-                        self.currentLevel.messages.say("That isn't a card.")
-                        return action.DoNothing()
                     card_to_use = self.deck.hand[card_id]
 
 # If the card is directional, get the direction to use it in.
