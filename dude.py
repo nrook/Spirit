@@ -381,11 +381,14 @@ class Player(Dude):
                     else:
                         self.giveCondition(cond.Running(direction))
                         return action.Move(self, direction)
-# If the key is 'fire', fire a card.
-            elif key == kp.FIRE:
-                card_id = kb.card_question(self.currentLevel.messages, 
-                                "Which card would you like to fire?",
-                                self.deck)
+# If the key is 'fire', fire a card. FIXME latter doesn't work
+            elif key == kp.FIRE or key in kb.card_values:
+                if key == kp.FIRE:
+                    card_id = kb.card_question(self.currentLevel.messages, 
+                                    "Which card would you like to fire?",
+                                    self.deck)
+                else:
+                    card_id = kb.card_values[key]
                 if card_id == -1:
                     return action.DoNothing()
                 else:

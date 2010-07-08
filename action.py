@@ -152,9 +152,12 @@ class Heal(Action):
             if extra_HP <= 0:
                 self.destination.setHP(self.destination.cur_HP + self.magnitude)
             else:
-                HP_bonus = extra_HP // 4
-                HP_overflow = extra_HP - (HP_bonus * 4)
-                HP_bonus += rng.percentChance(HP_overflow * 25)
+                if extra_HP <= 4:
+                    HP_bonus = 1
+                else:
+                    HP_bonus = extra_HP // 4
+                    HP_overflow = extra_HP - (HP_bonus * 4)
+                    HP_bonus += rng.percentChance(HP_overflow * 25)
                 self.destination.max_HP += HP_bonus
                 self.destination.setHP(self.destination.max_HP)
         else:
