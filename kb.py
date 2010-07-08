@@ -46,10 +46,9 @@ class kp:
     CARD_6,
     CARD_7,
     CANCEL,
-    REST,
     FIRE,
     HEAL,
-    ) = range(34)
+    ) = range(33)
 
 mainScreenTranslationTable = {
 ord('k') : kp.N,
@@ -72,7 +71,6 @@ ord('q') : kp.QUIT,
 ord('.') : kp.WAIT,
 ord('S') : kp.SAVE,
 ord('<') : kp.UP,
-ord('r') : kp.REST,
 ord('f') : kp.FIRE,
 ord('v') : kp.HEAL,
 }

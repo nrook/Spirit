@@ -55,7 +55,6 @@ class LevelTick(Event):
         Update the state of the LevelTick's level.  Return True.
         """
         self.currentLevel.player.deck.draw()
-        self.currentLevel.player.regenerate()
         return config.TURN_TICKS
 
 class TimedExplosion(Event):
