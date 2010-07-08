@@ -48,7 +48,8 @@ class kp:
     CANCEL,
     REST,
     FIRE,
-    ) = range(33)
+    HEAL,
+    ) = range(34)
 
 mainScreenTranslationTable = {
 ord('k') : kp.N,
@@ -73,6 +74,7 @@ ord('S') : kp.SAVE,
 ord('<') : kp.UP,
 ord('r') : kp.REST,
 ord('f') : kp.FIRE,
+ord('v') : kp.HEAL,
 }
 
 booleanQuestionTranslationTable = {

@@ -369,6 +369,7 @@ class Player(Dude):
 # If the key is the wait key, wait.
             elif key == kp.WAIT:
                 return action.Wait(self)
+# FIXME the hell is going on here?
 # If the key is a movement key, move or attack, as is appropriate.
             elif key in config.DIRECTION_SWITCH:
                 target = coordinates.add(self.coords,
@@ -447,6 +448,16 @@ class Player(Dude):
                             return action.HasteAll(self, 8)
                         assert False
                     assert False
+            elif key == kp.HEAL:
+# Have the player use a card to heal wounds.
+                card_id = kb.card_question(self.currentLevel.messages, 
+                            "Which card will you sacrifice for your health?",
+                            self.deck)
+                if card_id == -1:
+                    return action.DoNothing()
+                else:
+                    del self.deck.hand[card_id]
+                    return action.Heal(self, self, rng.XdY(2, 3))
             elif key == kp.REST:
 # Give the player the "rest" status, so she waits until healed fully.
                 self.giveCondition(cond.Resting())

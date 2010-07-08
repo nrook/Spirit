@@ -18,6 +18,7 @@ Special melee attack: SPMELEE
 Explode: EXPLODE
 Fire an arrow: ARROW
 Go upstairs: UP
+Heal: HEAL
 """
 
 """
@@ -43,6 +44,8 @@ import kb
 CRIT_MULTIPLIER = 2
 KNOCK_DAMAGE = 5
 KNOCK_DISTANCE = 10
+
+HEAL_HP_FOR_BONUS = 4
 
 ARROW_GLYPH = symbol.Glyph('`', (255, 255, 255))
 
@@ -125,6 +128,41 @@ class Move(Action):
         else:
             assert False
             return 0
+
+class Heal(Action):
+    """
+    An action representing a dude being healed.
+    """
+
+    def __init__(self, source, destination, magnitude):
+        """
+        destination - the dude being healed.
+        magnitude - the amount of HP the dude should be healed.
+        """
+
+        Action.__init__(self, "HEAL")
+        self.source = source
+        self.destination = destination
+        self.magnitude = magnitude
+
+    def do(self):
+        if self.destination.isPlayer():
+            self.source.currentLevel.messages.say("You feel better.")
+            extra_HP = (self.destination.cur_HP + self.magnitude - self.destination.max_HP)
+            if extra_HP <= 0:
+                self.destination.setHP(self.destination.cur_HP + self.magnitude)
+            else:
+                HP_bonus = extra_HP // 4
+                HP_overflow = extra_HP - (HP_bonus * 4)
+                HP_bonus += rng.percentChance(HP_overflow * 25)
+                self.destination.max_HP += HP_bonus
+                self.destination.setHP(self.destination.max_HP)
+        else:
+            self.source.currentLevel.messages.say("%(DESTINATION_NAME)s looks healthier."
+                % {"DESTINATION_NAME":self.destination.getName()})
+            self.destination.setHP(self.destination.cur_HP + magnitude)
+        
+        return self.source.speed
 
 class Teleport(Action):
     """
