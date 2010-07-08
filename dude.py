@@ -369,7 +369,6 @@ class Player(Dude):
 # If the key is the wait key, wait.
             elif key == kp.WAIT:
                 return action.Wait(self)
-# FIXME the hell is going on here?
 # If the key is a movement key, move or attack, as is appropriate.
             elif key in config.DIRECTION_SWITCH:
                 target = coordinates.add(self.coords,
