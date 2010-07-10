@@ -381,15 +381,12 @@ class Player(Dude):
                     else:
                         self.giveCondition(cond.Running(direction))
                         return action.Move(self, direction)
-# If the key is 'fire', fire a card. FIXME latter doesn't work
-            elif key == kp.FIRE or key in kb.card_values:
-                if key == kp.FIRE:
-                    card_id = kb.card_question(self.currentLevel.messages, 
-                                    "Which card would you like to fire?",
-                                    self.deck)
-                else:
-                    card_id = kb.card_values[key]
-                if card_id == -1:
+# If the key represents a card, use that card.
+            elif key in kb.card_values:
+                log.log("Card button pressed")
+                card_id = kb.card_values[key]
+                log.log("Card ID: %s" % card_id)
+                if card_id == -1 or card_id >= len(self.deck.hand):
                     return action.DoNothing()
                 else:
                     card_to_use = self.deck.hand[card_id]
@@ -465,6 +462,7 @@ class Player(Dude):
         self.max_HP += HP_boost
         self.cur_HP += HP_boost
         self.char_level += 1
+        action.Heal(self, self, rng.XdY(2, 10)).do()
 
     def resetFOV(self):
         """

@@ -73,6 +73,13 @@ ord('S') : kp.SAVE,
 ord('<') : kp.UP,
 ord('f') : kp.FIRE,
 ord('v') : kp.HEAL,
+ord('1') : kp.CARD_1,
+ord('2') : kp.CARD_2,
+ord('3') : kp.CARD_3,
+ord('4') : kp.CARD_4,
+ord('5') : kp.CARD_5,
+ord('6') : kp.CARD_6,
+ord('7') : kp.CARD_7,
 }
 
 booleanQuestionTranslationTable = {
@@ -134,6 +141,13 @@ DIRECTION_SWITCH =  {
                     kp.N: (0, -1)}
 
 import tcod_display as display
+
+def isCard(key):
+    """
+    Return true if key represents a card, no otherwise.
+    """
+
+    return key in card_values
 
 def getKey(mode = "main"):
     """Get a keypress.  "mode" is a string indicating the used key table."""
