@@ -6,7 +6,10 @@ import arrays
 import config
 import symbol
 
+import sys
+sys.path.append("libtcod")
 import libtcodpy as tcod
+# import libtcodpy as tcod
 
 level_cache = None
 
