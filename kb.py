@@ -45,7 +45,7 @@ class kp:
     CARD_5,
     CARD_6,
     CARD_7,
-    CANCEL,
+    ESCAPE,
     FIRE,
     HEAL,
     ) = range(33)
@@ -67,12 +67,14 @@ ord('J') : kp.RS,
 ord('B') : kp.RSW,
 ord('H') : kp.RW,
 ord('Y') : kp.RNW,
+
 ord('q') : kp.QUIT,
 ord('.') : kp.WAIT,
 ord('S') : kp.SAVE,
 ord('<') : kp.UP,
 ord('f') : kp.FIRE,
-ord('v') : kp.HEAL,
+ord('v') : kp.FIRE,
+ord('r') : kp.HEAL,
 ord('1') : kp.CARD_1,
 ord('2') : kp.CARD_2,
 ord('3') : kp.CARD_3,
@@ -101,6 +103,7 @@ ord('y') : kp.NW,
 }
 
 cardTranslationTable = {
+27       : kp.ESCAPE,
 ord('1') : kp.CARD_1,
 ord('2') : kp.CARD_2,
 ord('3') : kp.CARD_3,
@@ -233,15 +236,19 @@ def card_question(messages, prompt, deck):
 
     response_key = question(messages, prompt, "card")
 
+# If an invalid response is given, keep asking until you get a valid one.
     if response_key == kp.NOTKEY:
-        messages.say("That is not a card.")
+        messages.say("Please select a card (1-7) or escape.")
+        return card_question(messages, prompt, deck)
+    if response_key == kp.ESCAPE:
+        messages.say("Never mind.")
         return -1
 
 # Now we are guaranteed that response_key is in card_values.
     card_id = card_values[response_key]
     if card_id >= len(deck.hand):
-        messages.say("That is not a card.")
-        return -1
+        messages.say("You don't have a card there.")
+        return card_question(messages, prompt, deck)
     else:
         return card_id
 

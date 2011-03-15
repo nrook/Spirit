@@ -381,53 +381,26 @@ class Player(Dude):
                     else:
                         self.giveCondition(cond.Running(direction))
                         return action.Move(self, direction)
+# If the key requests that a card be used, prompt for a card, then use it.
+            elif key == kp.FIRE:
+                if len(self.deck.hand) == 0:
+                    self.currentLevel.messages.append(
+                        "You have no cards to use!")
+                else:
+                    card_id = kb.card_question(self.currentLevel.messages,
+                        "Which card do you want to evoke?", self.deck)
+                    if card_id == -1:
+                        return action.DoNothing()
+                    else:
+                        return self.useCard(card_id)
+
 # If the key represents a card, use that card.
             elif key in kb.card_values:
                 log.log("Card button pressed")
                 card_id = kb.card_values[key]
                 log.log("Card ID: %s" % card_id)
-                if card_id == -1 or card_id >= len(self.deck.hand):
-                    return action.DoNothing()
-                else:
-                    card_to_use = self.deck.hand[card_id]
+                return self.useCard(card_id)
 
-# If the card is directional, get the direction to use it in.
-                    if card_to_use.is_directional:
-                        direction_of_target_square = kb.direction_question(
-                            self.currentLevel.messages,
-                            "In which direction would you like to use the %s card?"
-                            % card_to_use.ability_name)
-                    if card_to_use.is_melee:
-                        target_square = coordinates.add(self.coords, direction_of_target_square)
-                        if target_square in self.currentLevel.dudeLayer:
-                            del self.deck.hand[card_id]
-                            return action.SpecialMelee(self,
-                                self.currentLevel.dudeLayer[target_square],
-                                card_to_use.action_code)
-                        else:
-                            self.currentLevel.messages.say("You whiff completely!")
-                            del self.deck.hand[card_id]
-                            return action.Wait(self)
-                    else:
-                        if card_to_use.action_code == "GRENTHROW":
-                            target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
-                            if self.currentLevel.isEmpty(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
-                                del self.deck.hand[card_id]
-                                return action.ThrowGrenade(self, target_square)
-                            else:
-                                self.currentLevel.messages.say("There's something in the way!")
-                                return action.DoNothing()
-                        elif card_to_use.action_code == "ARROW":
-                            del self.deck.hand[card_id]
-                            return action.FireArrow(self, direction_of_target_square, 12)
-                        elif card_to_use.action_code == "HASTE":
-                            del self.deck.hand[card_id]
-                            return action.HasteMonster(self, self, 12)
-                        elif card_to_use.action_code == "HASTEALL":
-                            del self.deck.hand[card_id]
-                            return action.HasteAll(self, 8)
-                        assert False
-                    assert False
             elif key == kp.HEAL:
 # Have the player use a card to heal wounds.
                 card_id = kb.card_question(self.currentLevel.messages, 
@@ -442,6 +415,59 @@ class Player(Dude):
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == level.UPSTAIRS_GLYPH:
         	        return action.Up()
+
+    def useCard(self, card_id):
+        """
+        Use a card (asking the player for required information).
+
+        card_id - the ID (CARD_1, CARD_2, etc.) of the card to be used.
+        
+        Returns the action decided upon.
+        """
+        log.log("Using card (Card ID: %s)" % card_id)
+
+        if card_id == -1 or card_id >= len(self.deck.hand):
+            return action.DoNothing()
+        else:
+            card_to_use = self.deck.hand[card_id]
+
+# If the card is directional, get the direction to use it in.
+            if card_to_use.is_directional:
+                direction_of_target_square = kb.direction_question(
+                    self.currentLevel.messages,
+                    "In which direction would you like to use the %s card?"
+                    % card_to_use.ability_name)
+            if card_to_use.is_melee:
+                target_square = coordinates.add(self.coords, direction_of_target_square)
+                if target_square in self.currentLevel.dudeLayer:
+                    del self.deck.hand[card_id]
+                    return action.SpecialMelee(self,
+                        self.currentLevel.dudeLayer[target_square],
+                        card_to_use.action_code)
+                else:
+                    self.currentLevel.messages.say("You whiff completely!")
+                    del self.deck.hand[card_id]
+                    return action.Wait(self)
+            else:
+                if card_to_use.action_code == "GRENTHROW":
+                    target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
+                    if self.currentLevel.isEmpty(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
+                        del self.deck.hand[card_id]
+                        return action.ThrowGrenade(self, target_square)
+                    else:
+                        self.currentLevel.messages.say("There's something in the way!")
+                        return action.DoNothing()
+                elif card_to_use.action_code == "ARROW":
+                    del self.deck.hand[card_id]
+                    return action.FireArrow(self, direction_of_target_square, 12)
+                elif card_to_use.action_code == "HASTE":
+                    del self.deck.hand[card_id]
+                    return action.HasteMonster(self, self, 12)
+                elif card_to_use.action_code == "HASTEALL":
+                    del self.deck.hand[card_id]
+                    return action.HasteAll(self, 8)
+                assert False
+            assert False
 
     def obtainCard(self, mon):
         """
