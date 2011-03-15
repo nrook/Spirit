@@ -6,7 +6,6 @@ atk=5
 def=100
 speed=72
 ai=CLOSE
-level=2
 r=200
 g=200
 b=200
@@ -22,7 +21,6 @@ atk=5
 def=100
 speed=72
 ai=CLOSE
-level=1
 r=50
 g=90
 b=255
@@ -38,7 +36,6 @@ atk=0
 def=200
 speed=72
 ai=RANGEDAPPROACH
-level=3
 r=96
 g=157
 b=17
@@ -57,7 +54,6 @@ atk=7
 def=120
 speed=72
 ai=RANGEDAPPROACH
-level=5
 r=255
 g=255
 b=255
@@ -76,7 +72,6 @@ atk=8
 def=100
 speed=72
 ai=CLOSE
-level=1
 r=200
 g=20
 b=20
@@ -92,7 +87,6 @@ atk=12
 def=100
 speed=36
 ai=RANGEDAPPROACH
-level=7
 r=255
 g=255
 b=0
@@ -112,7 +106,6 @@ atk=0
 def=50
 speed=288
 ai=STATUE
-level=1
 r=0
 g=127
 b=0
@@ -128,7 +121,6 @@ atk=0
 def=100
 speed=72
 ai=WAIT
-level=5
 r=65
 g=255
 b=0
@@ -140,6 +132,24 @@ do_not_naturally_generate
 [ENDSEC]
 
 <MONSTER>
+name=Bertrand the Whisperer
+glyph=@
+hp=120
+atk=0
+def=100
+speed=72
+ai=WAIT
+r=30
+g=30
+b=255
+spec=NONE
+specfreq=0
+[TAG]
+proper_noun
+[END]
+[ENDSEC]
+
+<MONSTER>
 name=bug
 glyph=B
 hp=1
@@ -147,7 +157,6 @@ atk=1
 def=100
 speed=72
 ai=CLOSE
-level=1
 r=0
 g=255
 b=255

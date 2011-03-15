@@ -516,7 +516,7 @@ class Monster(Dude):
     A dude not controlled by the player.  Typically an antagonist.
     """
     def __init__(self, name, coords, glyph, AICode, speed, max_HP, tags, attack, defense, 
-        char_level, spec, specfreq, currentLevel = None):
+        spec, specfreq, currentLevel = None):
         """
         Create a new monster.
 
@@ -534,8 +534,6 @@ class Monster(Dude):
         defense - what percentage of the damage dealt by the player the monster
             should take.  An integer; <100 shows resilience, while >100 shows
             a faculty for taking much damage.
-        char_level - the dungeon level the monster should normally appear on;
-            also relates to its power.
         spec - a string representing the monster's special power, activated on
             a regular attack.
         specfreq - a string representing how many of the monster's regular
@@ -543,7 +541,7 @@ class Monster(Dude):
         """
 
         Dude.__init__(self, coords, glyph, speed, max_HP, currentLevel, name,
-            attack, defense, tags, char_level)
+            attack, defense, tags, 1)
         
         self.AICode = AICode
         self.state = ais.RESTING
@@ -1046,7 +1044,6 @@ def duplicate(prototype, coords = None, currentLevel = None):
                        prototype.tags[:] if prototype.tags is not None else None,
                        prototype.attack,
                        prototype.defense,
-                       prototype.char_level,
                        prototype.spec,
                        prototype.specfreq,
                        currentLevel,
