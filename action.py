@@ -76,6 +76,7 @@ class Action(object):
 
     def do(self):
 # The "do" method must return the number of ticks the action took.
+        assert False
         return 0
 
 class DoNothing(Action):
@@ -435,7 +436,7 @@ class Pounce(Action):
         direction - the direction in which the pounce is made.
         distance - the maximum range of the pounce.
         """
-        Action.__init__(self, "POUNCE", "%s pounced!" % source.getName())
+        Action.__init__(self, "POUNCE", "")
         self.source = source
         self.direction = direction
         self.distance = distance
@@ -443,8 +444,6 @@ class Pounce(Action):
     def do(self):
         cur_lev = self.source.currentLevel
         next_loc = self.source.coords
-        self.source.currentLevel.messages.append(
-            self.message % {"SOURCE_NAME": self.source.getName()})
 
         i = 0
         while i < self.distance:
@@ -468,6 +467,8 @@ class Pounce(Action):
 
                 damage_dealt = damage(self.source.attack, target.defense,
                                self.source.char_level, target.char_level)
+                cur_lev.messages.append("%s pounced on %s! (%d)"
+                    % (self.source.getName(), target.getName(), damage_dealt))
                 target.cur_HP -= damage_dealt
                 target.checkDeath()
                 break
