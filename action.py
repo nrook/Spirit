@@ -445,13 +445,22 @@ class Pounce(Action):
         cur_lev = self.source.currentLevel
         next_loc = self.source.coords
 
+# Essentially a for loop, for i in range(self.distance).
         i = 0
-        while i < self.distance:
+        while True:
+            if i >= self.distance:
+                cur_lev.messages.append("%s pounced, but caught only air."
+                    % self.source.getName())
+                break
+
             i += 1
+
             next_loc = coordinates.add(self.source.coords, self.direction)
             display.refresh_screen()
             
             if not cur_lev.isEmpty(next_loc):
+                cur_lev.messages.append("%s pounced at the wall."
+                    % self.source.getName())
                 break
             elif next_loc in cur_lev.dudeLayer:
                 # The pouncer hit a dude.
