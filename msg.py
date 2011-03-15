@@ -2,6 +2,7 @@
 Contains the MessageBuffer class.
 """
 
+import config
 import arrays
 
 import tcod_display as display
@@ -45,6 +46,10 @@ class MessageBuffer(object):
         
 # Don't add non-string things to the list by mistake!
         assert type(element) == type("")
+# Don't add strings which are too long!
+        if (len(element) > config.MESSAGES_DIMENSIONS[0]):
+            raise ValueError("String added to message list too long.\n%s" 
+                % element)
 
         self.message_list.append(element)
 
