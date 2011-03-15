@@ -460,6 +460,9 @@ class Player(Dude):
                 elif card_to_use.action_code == "ARROW":
                     del self.deck.hand[card_id]
                     return action.FireArrow(self, direction_of_target_square, 12)
+                elif card_to_use.action_code == "POUNCE":
+                    del self.deck.hand[card_id]
+                    return action.Pounce(self, direction_of_target_square, 12)
                 elif card_to_use.action_code == "HASTE":
                     del self.deck.hand[card_id]
                     return action.HasteMonster(self, self, 12)
