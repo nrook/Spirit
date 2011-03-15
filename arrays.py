@@ -143,7 +143,6 @@ def print_str_to_end_of_line(initial_coords, string_used, array, color = (255, 2
     color - the color of the text being printed.
     """
     
-# overflow chars = chars in array line - chars before string - chars in string
     overflow_chars = array.shape[0] - initial_coords[0] - len(string_used)
     if overflow_chars < 0:
         raise ValueError(
