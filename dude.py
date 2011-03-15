@@ -410,7 +410,7 @@ class Player(Dude):
                     return action.DoNothing()
                 else:
                     del self.deck.hand[card_id]
-                    return action.Heal(self, self, rng.XdY(2, 10))
+                    return action.Heal(self, self, rng.XdY(2, 10), True)
 # If the key is the "go upstairs" key, try to go up a level.
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == level.UPSTAIRS_GLYPH:
@@ -491,7 +491,7 @@ class Player(Dude):
         self.max_HP += HP_boost
         self.cur_HP += HP_boost
         self.char_level += 1
-        action.Heal(self, self, rng.XdY(2, 10)).do()
+        action.Heal(self, self, 1000, False).do()
 
     def resetFOV(self):
         """
