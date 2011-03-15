@@ -512,7 +512,8 @@ class Monster(Dude):
     """
     A dude not controlled by the player.  Typically an antagonist.
     """
-    def __init__(self, name, coords, glyph, AICode, speed, max_HP, tags, attack, defense, char_level, spec, specfreq, currentLevel = None):
+    def __init__(self, name, coords, glyph, AICode, speed, max_HP, tags, attack, defense, 
+        char_level, spec, specfreq, currentLevel = None):
         """
         Create a new monster.
 
@@ -602,14 +603,20 @@ class Monster(Dude):
             if self.player_last_location is not None:
 # The player has escaped!  Find a likely square where he could have gone.
                 adjacent_coords = coordinates.adjacent_coords(self.player_last_location)
-                legal_coords = [i for i in adjacent_coords if coordinates.legal(i, self.currentLevel.dimensions)]
-                passable_coords = [i for i in legal_coords if self.currentLevel.isEmpty(i)]
-                out_of_vision_coords = [i for i in passable_coords if i not in self.fov]
+                legal_coords = [i for i in adjacent_coords 
+                    if coordinates.legal(i, self.currentLevel.dimensions)]
+                passable_coords = [i for i in legal_coords 
+                    if self.currentLevel.isEmpty(i)]
+                out_of_vision_coords = \
+                    [i for i in passable_coords if i not in self.fov]
 
                 if len(out_of_vision_coords) > 0:
 # There is a possible escape route!  Pursue!
-                    self.direction = coordinates.subtract(rng.choice(out_of_vision_coords), self.player_last_location)
-                    self.path = pf.find_shortest_path(self.currentLevel, self.coords, self.player_last_location, False)
+                    self.direction = coordinates.subtract(
+                        rng.choice(out_of_vision_coords), 
+                        self.player_last_location)
+                    self.path = pf.find_shortest_path(self.currentLevel, 
+                        self.coords, self.player_last_location, False)
                     if self.path == []:
 # There is no route to the player's escape route.  Wait, but stay in
 # state FIGHTING so as to take advantage of any route that opens up.
@@ -764,6 +771,14 @@ class Monster(Dude):
                 return action.Wait(self)
 
     def rangedApproach(self):
+        if ("prefer_melee" in self.tags and 
+            coordinates.minimumPath(self.coords, 
+            self.currentLevel.player.coords) == 1):
+
+# If the monster prefers melee and is in melee range, don't do a ranged attack.
+            
+            return self.closeToPlayer()
+
         ranged_attack = self.probableRangedAttack()
         if ranged_attack is not None:
             return ranged_attack
@@ -790,7 +805,7 @@ class Monster(Dude):
                 return action.ThrowGrenade(self, final_target)
             else:
                 return None
-        elif "twelve_square_firer" in self.tags:
+        elif "straight_shooter" in self.tags:
             direction = coordinates.get_cardinal_direction(self.coords,
                           self.currentLevel.player.coords)
             dist = coordinates.minimumPath(self.coords,
@@ -799,7 +814,13 @@ class Monster(Dude):
                 and direction is not None \
                 and dist < 12:
 
-                return action.FireArrow(self, direction, 12)
+                if self.spec == "ARROW":
+                    return action.FireArrow(self, direction, 12)
+                elif self.spec == "POUNCE":
+                    return action.Pounce(self, direction, 12)
+                else:
+                    assert False
+                    return None
             else:
                 return None
         else:

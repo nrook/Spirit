@@ -275,7 +275,9 @@ class SpecialMelee(Action):
     code - a special code representing the type of special attack.
     """
 
-    def __init__(self, source, target, code, message = "%(SOURCE_NAME)s uses a special attack on %(TARGET_NAME)s! (%(DAMAGE)d)"):
+    def __init__(self, source, target, code, message = 
+        "%(SOURCE_NAME)s uses a special attack on %(TARGET_NAME)s! (%(DAMAGE)d)"):
+
         Action.__init__(self, "SPMELEE", message)
         self.source = source
         self.target = target
@@ -418,6 +420,62 @@ class FireArrow(Action):
                     display.refresh_screen()
                     break
 
+        return self.source.speed
+
+class Pounce(Action):
+    """
+    An action representing a distance-closing pounce attack.
+    """
+
+    def __init__(self, source, direction, distance):
+        """
+        Initialize a pounce Action.
+        
+        source - the dude pouncing.
+        direction - the direction in which the pounce is made.
+        distance - the maximum range of the pounce.
+        """
+        Action.__init__(self, "POUNCE", "%s pounced!" % source.getName())
+        self.source = source
+        self.direction = direction
+        self.distance = distance
+
+    def do(self):
+        cur_lev = self.source.currentLevel
+        next_loc = self.source.coords
+        self.source.currentLevel.messages.append(
+            self.message % {"SOURCE_NAME": self.source.getName()})
+
+        i = 0
+        while i < self.distance:
+            i += 1
+            next_loc = coordinates.add(self.source.coords, self.direction)
+            display.refresh_screen()
+            
+            if not cur_lev.isEmpty(next_loc):
+                break
+            elif next_loc in cur_lev.dudeLayer:
+                # The pouncer hit a dude.
+                target = cur_lev.dudeLayer[next_loc]
+                # Bounce off: behind the dude if possible, in front otherwise.
+                behind = coordinates.add(next_loc, self.direction)
+                in_front = coordinates.subtract(next_loc, self.direction)
+
+                if (cur_lev.isEmpty(behind) and behind not in cur_lev.dudeLayer):
+                    cur_lev.moveDude(self.source, behind)
+# The pouncer should already be in front of the target, so if it is not going
+# through them, no motion is necessary.
+
+                damage_dealt = damage(self.source.attack, target.defense,
+                               self.source.char_level, target.char_level)
+                target.cur_HP -= damage_dealt
+                target.checkDeath()
+                break
+
+            else:
+                cur_lev.moveDude(self.source, next_loc)
+
+        display.refresh_screen()
         return self.source.speed
 
 class ThrowGrenade(Action):

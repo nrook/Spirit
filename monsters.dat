@@ -64,7 +64,7 @@ b=255
 spec=ARROW
 specfreq=0
 [TAG]
-twelve_square_firer
+straight_shooter
 [END]
 [ENDSEC]
 
@@ -91,13 +91,17 @@ hp=30
 atk=12
 def=100
 speed=36
-ai=CLOSE
+ai=RANGEDAPPROACH
 level=7
 r=255
 g=255
 b=0
-spec=NOEFF
+spec=POUNCE
 specfreq=0
+[TAG]
+straight_shooter
+prefer_melee
+[END]
 [ENDSEC]
 
 <MONSTER>
