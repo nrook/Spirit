@@ -1,5 +1,8 @@
 import coordinates
 from level import OPEN_GLYPHS
+import libtcodpy as tcod
+
+FOV_RADIUS = 4
 
 class fov(object):
     """
@@ -45,31 +48,25 @@ class fov(object):
         """
         
         dimensions = level_.dimensions
+        map = level_.sight_map
+
+        tcod.map_compute_fov(map, initial_location[0], 
+            initial_location[1], FOV_RADIUS, True, tcod.FOV_BASIC)
+
         border = set()
         fov_set = set()
         dude_set = set()
 
-        border.add(initial_location)
+        for i in range(initial_location[0] - FOV_RADIUS, 
+            initial_location[0] + FOV_RADIUS + 1):
 
-        while len(border) != 0:
-            next_border = set()
-            for i in border:
-                for adjacent in coordinates.adjacent_coords(i):
-                    if adjacent in fov_set or adjacent in border or adjacent in next_border:
-                        pass
-                    elif not coordinates.legal(adjacent, dimensions):
-                        pass
-                    else:
-                        if level_.dungeonGlyph(adjacent) in OPEN_GLYPHS:
-                            next_border.add(adjacent)
-                        else:
-                            fov_set.add(adjacent)
-                        if adjacent in level_.dudeLayer:
-                            dude_set.add(level_.dudeLayer[adjacent])
-
-                fov_set.add(i)
-
-            border = next_border
+            for j in range(initial_location[1] - FOV_RADIUS,
+                initial_location[1] + FOV_RADIUS + 1):
+                    
+                    if tcod.map_is_in_fov(map, i, j):
+                        fov_set.add((i, j))
+                        if (i, j) != initial_location and (i, j) in level_.dudeLayer:
+                            dude_set.add(level_.dudeLayer[(i, j)])
 
         self.__the_field = fov_set
         self.dudes = frozenset(dude_set)

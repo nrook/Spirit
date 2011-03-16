@@ -5,7 +5,6 @@ level.py includes the Level class, which stores a specific dungeon level.
 import config
 import arrays
 import coordinates
-import numpy
 import log
 import msg
 import symbol
@@ -15,12 +14,15 @@ import queue
 import dude
 import rng
 
+import numpy
+import libtcodpy as tcod
+
 ROOM_INTERIOR_GLYPH = symbol.Glyph('.', (255, 255, 255))
 CORRIDOR_GLYPH = symbol.Glyph('#', (118, 41, 0))
 UPSTAIRS_GLYPH = symbol.Glyph('<', (255, 0, 0))
 DOWNSTAIRS_GLYPH = symbol.Glyph('>', (0, 255, 0))
 
-OPEN_GLYPHS = set([ROOM_INTERIOR_GLYPH])
+OPEN_GLYPHS = set([ROOM_INTERIOR_GLYPH, CORRIDOR_GLYPH])
 SEMI_OPEN_GLYPHS = set([CORRIDOR_GLYPH])
 PASSABLE_TERRAIN = set([ROOM_INTERIOR_GLYPH, CORRIDOR_GLYPH])
 
@@ -93,9 +95,18 @@ class Level(object):
         self.__queue = None
         self.events = [events.LevelTick(self)]
         self.time = 0
+
+        self.sight_map = make_sight_map(dungeon)
     
     def __str__(self):
         return str(self.getArray())
+
+    def __del__(self):
+        """
+        The sight map must be manually garbage-collected.
+        """
+
+        tcod.map_delete(self.sight_map)
 
     def __addCharacterToMap(self, glyph, coords, height):
         """
@@ -663,3 +674,19 @@ def empty_elements(dimensions):
     """
     
     return symbol.glyphMap(dimensions)
+
+def make_sight_map(dungeon):
+    """
+    Returns a TCOD sight map of the dungeon given.
+
+    dungeon - a dungeon array.
+    dimensions - the dime
+    """
+    
+    dimensions = dungeon.shape
+    smap = tcod.map_new(dimensions[0], dimensions[1])
+    for i in range(dimensions[0]):
+        for j in range(dimensions[1]):
+            tcod.map_set_properties(smap, i, j, dungeon[i, j] in OPEN_GLYPHS, False)
+
+    return smap
