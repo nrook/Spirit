@@ -410,7 +410,8 @@ class Player(Dude):
                     return action.DoNothing()
                 else:
                     del self.deck.hand[card_id]
-                    return action.Heal(self, self, rng.XdY(2, 10), True)
+                    return action.Heal(self, self, 
+                        rng.XdY(2, 7 + self.char_level), False)
 # If the key is the "go upstairs" key, try to go up a level.
             elif key == kp.UP:
                 if self.currentLevel.elements[self.coords] == level.UPSTAIRS_GLYPH:

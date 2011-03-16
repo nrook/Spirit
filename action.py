@@ -653,11 +653,11 @@ def expected_HP(dude_level):
         return 6 * (dude_level + 2)
 
 def HP_on_level_gain():
-    """Determines what maximum HP increase the player gets on level gain.
+    """
+    Determines what maximum HP increase the player gets on level gain.
+    """
     
-    Currently, this HP boost should be 2."""
-    
-    return 2
+    return 4
 
 def damage(attack_power, defense_modifier, attacker_level, defender_level):
         defense_modifier = float(defense_modifier) / 100
