@@ -469,7 +469,7 @@ class Player(Dude):
                     return action.HasteMonster(self, self, 12)
                 elif card_to_use.action_code == "HASTEALL":
                     del self.deck.hand[card_id]
-                    return action.HasteAll(self, 8)
+                    return action.HasteAll(self, 8, True, True)
                 assert False
             assert False
 
@@ -832,8 +832,8 @@ class Monster(Dude):
         """
         The statue AI pattern is as follows:
 
-        If a monster that meets certain conditions is in view, do something to
-        it.
+        If a monster that meets certain conditions is in view, do
+        a general haste.
         If no such monster is in view, teleport adjacent to a damaged monster.
         If no such monster exists, then teleport randomly.
         """
@@ -841,7 +841,7 @@ class Monster(Dude):
         for d in self.fov.dudes:
             if self.spec == "QUICKEN":
                 if (not d.isPlayer()) and (d.AICode != "STATUE"):
-                    return action.HasteMonster(self, d, 8)
+                    return action.HasteAll(self, 8, False, False)
             else:
                 assert False
         

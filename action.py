@@ -197,9 +197,12 @@ class Teleport(Action):
         if self.source.currentLevel.isEmpty(self.destination) \
             and self.destination not in self.source.currentLevel.dudeLayer:
 
-            self.source.currentLevel.messages.append("%(SOURCE_NAME)s suddenly disappears!"
-                % {"SOURCE_NAME":self.source.getName()})
+            self.source.currentLevel.makeNoise("%(SOURCE_NAME)s suddenly disappears!"
+                % {"SOURCE_NAME":self.source.getName()}, self.source.coords)
             self.source.currentLevel.moveDude(self.source, self.destination)
+            self.source.currentLevel.makeNoise(
+                "%(SOURCE_NAME)s appears out of thin air!"
+                % {"SOURCE_NAME":self.source.getName()}, self.source.coords)
             return self.source.speed
         else:
             assert False
@@ -265,11 +268,11 @@ class Attack(Action):
         damage_dealt = damage(self.source.attack, self.target.defense,
                        self.source.char_level, self.target.char_level)
 
-        self.source.currentLevel.messages.append(self.message % {
+        self.source.currentLevel.makeNoise(self.message % {
             "SOURCE_NAME": self.source.getName(),
             "DAMAGE": damage_dealt,
-            "TARGET_NAME": self.target.getName(),
-            })
+            "TARGET_NAME": self.target.getName()},
+            self.source.coords)
         self.target.cur_HP -= damage_dealt
         self.target.checkDeath()
 
@@ -399,8 +402,9 @@ class FireArrow(Action):
     def do(self):
         current_location = self.source.coords
         self.source.currentLevel.addSolidEffect(current_location, ARROW_GLYPH)
-        self.source.currentLevel.messages.append(
-            self.message % {"SOURCE_NAME": self.source.getName()})
+        self.source.currentLevel.makeNoise(
+            self.message % {"SOURCE_NAME": self.source.getName()},
+            self.source.coords)
 
         i = 0
         while True:
@@ -417,9 +421,10 @@ class FireArrow(Action):
                 target = self.source.currentLevel.dudeLayer[current_location]
                 damage_dealt = damage(self.source.attack, target.defense,
                                self.source.char_level, target.char_level)
-                self.source.currentLevel.messages.append(
+                self.source.currentLevel.makeNoise(
                     "The arrow hit %s. (%d)"
-                    % (target.getName(), damage_dealt))
+                    % (target.getName(), damage_dealt),
+                    self.source.coords)
                 display.refresh_screen()
                 target.cur_HP -= damage_dealt
                 target.checkDeath()
@@ -509,13 +514,17 @@ class ThrowGrenade(Action):
         self.target_coords = target_coords
 
     def do(self):
+        self.source.currentLevel.makeNoise(self.message
+            % {"SOURCE_NAME": self.source.getName()},
+            self.source.coords)
+
         if self.target_coords in self.source.currentLevel.dudeLayer:
             target = self.source.currentLevel.dudeLayer[self.target_coords]
-            self.source.currentLevel.messages.append("The grenade lands right on the %s!" % target.getName())
+            self.source.currentLevel.makeNoise(
+                "The grenade lands right on the %s!" % target.getName(),
+                self.target_coords)
             return Detonate(target).do()
 
-        self.source.currentLevel.messages.append(self.message
-            % {"SOURCE_NAME": self.source.getName()})
         grenade = self.source.currentLevel.definition.monster_factory.create("grenade")
         grenade.giveCondition(cond.TimeBomb(3))
         self.source.currentLevel.addDude(grenade, self.target_coords)
@@ -527,35 +536,47 @@ class HasteMonster(Action):
     """
 
     def __init__(self, source, target, duration):
-        Action.__init__(self, "HASTEMON", "%(TARGET_NAME)s is speeding up!")
+        Action.__init__(self, "HASTEMON", "%(TARGET_NAME)s speeds up!")
         self.source = source
         self.target = target
         self.duration = duration
 
     def do(self):
-        self.target.currentLevel.messages.append(self.message
-            % {"TARGET_NAME": self.target.getName()})
-        self.target.giveCondition(cond.Haste(self.duration))
+        if not self.target.hasCondition("haste"):
+            self.target.currentLevel.makeNoise(self.message
+                % {"TARGET_NAME": self.target.getName()}, self.target.coords)
+            self.target.giveCondition(cond.Haste(self.duration))
         return self.source.speed
 
 class HasteAll(Action):
     """
     An action representing Hasting all of the dudes in view.
-
-    Note that HasteAll hastes the player for twice as long as the monsters!
     """
 
-    def __init__(self, source, duration):
+    def __init__(self, source, duration, hit_user, hit_player):
+        """
+        source - the thing doing the hasting.
+        duration - the number of turns the hasting should last.
+        hit_user - whether the source should be hasted. If it should, it is
+                   hasted for twice as long as the monsters.
+        hit_player - whether the player should be hasted, if in range.
+        """
+
         Action.__init__(self, "HASTEALL", "The air itself quickens around %(SOURCE_NAME)s!")
         self.source = source
         self.duration = duration
+        self.hit_user = hit_user
+        self.hit_player = hit_player
 
     def do(self):
-        self.source.currentLevel.messages.append(self.message
-            % {"SOURCE_NAME": self.source.getName()})
-        HasteMonster(self.source, self.source, self.duration * 2).do()
+        self.source.currentLevel.makeNoise(self.message 
+            % {"SOURCE_NAME": self.source.getName()}, self.source.coords)
+        if self.hit_user:
+            HasteMonster(self.source, self.source, self.duration * 2).do()
         for d in self.source.fov.dudes:
-            HasteMonster(self.source, d, self.duration).do()
+            if (not d.isPlayer()) or self.hit_player:
+                HasteMonster(self.source, d, self.duration).do()
+
         return self.source.speed
 
 def is_generic_action(act):
@@ -603,21 +624,23 @@ def do_special_melee(attack_type, source, target):
         damage_dealt = CRIT_MULTIPLIER * \
                        damage(source.attack, target.defense,
                               source.char_level, target.char_level)
-        source.currentLevel.messages.append(
+        source.currentLevel.makeNoise(
         "%(SOURCE_NAME)s runs %(TARGET_NAME)s all the way through! (%(DAMAGE)d)"
             % {"SOURCE_NAME": source.getName(),
                "DAMAGE": damage_dealt,
-               "TARGET_NAME": target.getName()})
+               "TARGET_NAME": target.getName()},
+            source.coords)
         target.cur_HP -= damage_dealt
         target.checkDeath()
     elif attack_type == "KNOCK":
         damage_dealt = KNOCK_DAMAGE
         direction = coordinates.subtract(target.coords, source.coords)
-        source.currentLevel.messages.append(
+        source.currentLevel.makeNoise(
         "%(SOURCE_NAME)s delivers a wicked punch to %(TARGET_NAME)s! (%(DAMAGE)d)"
             % {"SOURCE_NAME": source.getName(),
                "DAMAGE": damage_dealt,
-               "TARGET_NAME": target.getName()})
+               "TARGET_NAME": target.getName()},
+            source.coords)
         for i in range(KNOCK_DISTANCE):
             display.refresh_screen()
             destination = coordinates.add(target.coords, direction)
@@ -630,18 +653,19 @@ def do_special_melee(attack_type, source, target):
         target.checkDeath()
     elif attack_type == "EXPLODE":
         explode_action = Explode(source.currentLevel, source.coords, 10)
-        source.currentLevel.messages.append(
-        "%(SOURCE_NAME)s explodes!"
-            % {"SOURCE_NAME": source.getName()})
+        source.currentLevel.makeNoise(
+            "%(SOURCE_NAME)s explodes!" % {"SOURCE_NAME": source.getName()},
+            source.coords)
         explode_action.do()
     elif attack_type == "STICK":
         damage_dealt = damage(source.attack, target.defense,
                        source.char_level, target.char_level) / 5
-        source.currentLevel.messages.append(
+        source.currentLevel.makeNoise(
         "%(SOURCE_NAME)s spins a web around %(TARGET_NAME)s! (%(DAMAGE)d)"
             % {"SOURCE_NAME": source.getName(),
                "DAMAGE": damage_dealt,
-               "TARGET_NAME": target.getName()})
+               "TARGET_NAME": target.getName()},
+            source.coords)
         target.giveCondition(cond.Stuck(8))
         target.cur_HP -= damage_dealt
         target.checkDeath()

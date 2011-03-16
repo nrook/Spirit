@@ -422,6 +422,20 @@ class Level(object):
         self.__delCharacterFromMap(movedDude.coords, self.__DUDE_HEIGHT)
         self.dudeLayer.moveObject(movedDude, moveCoords)
         self.__addCharacterToMap(movedDude.glyph, movedDude.coords, self.__DUDE_HEIGHT)
+
+    def makeNoise(self, message, center):
+        """
+        Add a message to the queue provided a certain square is in player FOV.
+
+        message - a string containing the message to be displayed.
+        center - the square which must be in FOV for the message to be displayed.
+        """
+        
+        self.getPlayer().resetFOV()
+        if center in self.getPlayer().fov:
+            self.messages.append(message)
+
+        return
     
     def resetQueue(self):
         """
