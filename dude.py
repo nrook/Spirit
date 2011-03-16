@@ -386,6 +386,7 @@ class Player(Dude):
                 if len(self.deck.hand) == 0:
                     self.currentLevel.messages.append(
                         "You have no cards to use!")
+                    return action.DoNothing()
                 else:
                     card_id = kb.card_question(self.currentLevel.messages,
                         "Which card do you want to evoke?", self.deck)
@@ -393,13 +394,6 @@ class Player(Dude):
                         return action.DoNothing()
                     else:
                         return self.useCard(card_id)
-
-# If the key represents a card, use that card.
-            elif key in kb.card_values:
-                log.log("Card button pressed")
-                card_id = kb.card_values[key]
-                log.log("Card ID: %s" % card_id)
-                return self.useCard(card_id)
 
             elif key == kp.HEAL:
 # Have the player use a card to heal wounds.
