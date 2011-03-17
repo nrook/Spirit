@@ -53,9 +53,9 @@ def main(win = None):
             saved_player = curlev.player
             new_floor = curlev.floor + 1
             curlev = mapgen.randomLevel(floor_defs[new_floor], player)
-            curlev.player.levelUp()
             curlev.player.clearMemory()
             curlev.messages.append("Welcome to the next floor!")
+            curlev.player.levelUp()
         except exc.SavingLevelChange:
             saved_player = curlev.player
             new_floor = curlev.floor + 1

@@ -152,11 +152,13 @@ class Heal(Action):
     def do(self):
         if self.destination.isPlayer():
             self.source.currentLevel.messages.say("You feel better.")
-            extra_HP = (self.destination.cur_HP + self.magnitude - self.destination.max_HP)
+            extra_HP = (self.destination.cur_HP + self.magnitude 
+                - self.destination.max_HP)
 
             if self.hp_bonus:
                 if extra_HP <= 0:
-                    self.destination.setHP(self.destination.cur_HP + self.magnitude)
+                    self.destination.setHP(self.destination.cur_HP 
+                        + self.magnitude)
                 else:
                     if extra_HP <= 4:
                         HP_bonus = 1
@@ -168,11 +170,13 @@ class Heal(Action):
                     self.destination.setHP(self.destination.max_HP)
             else:
                 if extra_HP <= 0:
-                    self.destination.setHP(self.destination.cur_HP + self.magnitude)
+                    self.destination.setHP(self.destination.cur_HP 
+                        + self.magnitude)
                 else:
                     self.destination.setHP(self.destination.max_HP)
         else:
-            self.source.currentLevel.messages.say("%(DESTINATION_NAME)s looks healthier."
+            self.source.currentLevel.messages.say(
+                "%(DESTINATION_NAME)s looks healthier."
                 % {"DESTINATION_NAME":self.destination.getName()})
             self.destination.setHP(self.destination.cur_HP + magnitude)
         

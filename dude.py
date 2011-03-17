@@ -433,10 +433,11 @@ class Player(Dude):
                     "In which direction would you like to use the %s card?"
                     % card_to_use.ability_name)
                 if direction_of_target_square is None:
-                    self.currentLevel.messages.append("Never mind.")
+                    self.currentLevel.messages.say("Never mind.")
                     return action.DoNothing()
             if card_to_use.is_melee:
-                target_square = coordinates.add(self.coords, direction_of_target_square)
+                target_square = coordinates.add(
+                    self.coords, direction_of_target_square)
                 if target_square in self.currentLevel.dudeLayer:
                     del self.deck.hand[card_id]
                     return action.SpecialMelee(self,
@@ -448,16 +449,22 @@ class Player(Dude):
                     return action.Wait(self)
             else:
                 if card_to_use.action_code == "GRENTHROW":
-                    target_square = coordinates.add(self.coords, coordinates.multiply(direction_of_target_square, 2))
-                    if self.currentLevel.isEmpty(target_square) and (not events.is_grenade_at_coords(target_square, self.currentLevel)):
+                    target_square = coordinates.add(self.coords, 
+                        coordinates.multiply(direction_of_target_square, 2))
+                    if self.currentLevel.isEmpty(target_square) \
+                        and (not events.is_grenade_at_coords(
+                        target_square, self.currentLevel)):
+
                         del self.deck.hand[card_id]
                         return action.ThrowGrenade(self, target_square)
                     else:
-                        self.currentLevel.messages.say("There's something in the way!")
+                        self.currentLevel.messages.say(
+                            "There's something in the way!")
                         return action.DoNothing()
                 elif card_to_use.action_code == "ARROW":
                     del self.deck.hand[card_id]
-                    return action.FireArrow(self, direction_of_target_square, 12)
+                    return action.FireArrow(
+                        self, direction_of_target_square, 12)
                 elif card_to_use.action_code == "POUNCE":
                     del self.deck.hand[card_id]
                     return action.Pounce(self, direction_of_target_square, 12)
@@ -487,9 +494,9 @@ class Player(Dude):
         """Raise the player's level, thus boosting his HP and stats."""
         HP_boost = action.HP_on_level_gain()
         self.max_HP += HP_boost
-        self.cur_HP += HP_boost
+        self.setHP(self.max_HP)
         self.char_level += 1
-        action.Heal(self, self, 1000, False).do()
+        self.currentLevel.messages.append("You feel stronger!")
 
     def resetFOV(self):
         """
