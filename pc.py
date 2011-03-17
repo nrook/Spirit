@@ -217,7 +217,6 @@ class Player(dude.Dude):
         
         Returns the action decided upon.
         """
-        log.log("Using card (Card ID: %s)" % card_id)
 
         if card_id == -1 or card_id >= len(self.deck.hand):
             return action.DoNothing()

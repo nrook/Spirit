@@ -205,7 +205,7 @@ class Level(object):
         """
         
         if coords in self.dudeLayer:
-            return self.dudeLayer[coords].glyph
+            return self.dudeLayer[coords].getCurGlyph()
         else:
             return config.TRANSPARENT_GLYPH
 
@@ -254,7 +254,7 @@ class Level(object):
         addedDude.setCurrentLevel(self)
         addedDude.setCoords(dudeCoords)
         self.dudeLayer.append(addedDude)
-        self.__addCharacterToMap(addedDude.glyph, dudeCoords, self.__DUDE_HEIGHT)
+        self.__addCharacterToMap(addedDude.getCurGlyph(), dudeCoords, self.__DUDE_HEIGHT)
         if addToQueue:
             self.__queue.put(addedDude, self.time)
     
@@ -268,23 +268,22 @@ class Level(object):
         self.dudeLayer.player = addedPlayer
         self.addDude(addedPlayer, coords, False)
 
-    def changeDudeGlyph(self, changed_dude, new_glyph):
+    def refreshDudeGlyph(self, changed_dude):
         """
-        Change the glyph of a dude.
+        Redraw a dude. Used if a dude's glyph may have changed.
+        
+        changed_dude - the dude to redraw.
+        """
 
-        changed_dude - a dude on this level, whose glyph will be changed.
-        new_glyph - the new glyph for this dude.
-        """
         assert self.dudeLayer[changed_dude.coords] is changed_dude
 
         self.__delCharacterFromMap(changed_dude.coords, self.__DUDE_HEIGHT)
-        changed_dude.glyph = new_glyph
-        self.__addCharacterToMap(changed_dude.glyph, changed_dude.coords, self.__DUDE_HEIGHT)
+        self.__addCharacterToMap(changed_dude.getCurGlyph(), changed_dude.coords, self.__DUDE_HEIGHT)
 
     def moveDude(self, movedDude, moveCoords):
         self.__delCharacterFromMap(movedDude.coords, self.__DUDE_HEIGHT)
         self.dudeLayer.moveObject(movedDude, moveCoords)
-        self.__addCharacterToMap(movedDude.glyph, movedDude.coords, self.__DUDE_HEIGHT)
+        self.__addCharacterToMap(movedDude.getCurGlyph(), movedDude.coords, self.__DUDE_HEIGHT)
     
     def getPlayer(self):
         """Returns the player dude."""
@@ -431,7 +430,7 @@ class Level(object):
     def moveDude(self, movedDude, moveCoords):
         self.__delCharacterFromMap(movedDude.coords, self.__DUDE_HEIGHT)
         self.dudeLayer.moveObject(movedDude, moveCoords)
-        self.__addCharacterToMap(movedDude.glyph, movedDude.coords, self.__DUDE_HEIGHT)
+        self.__addCharacterToMap(movedDude.getCurGlyph(), movedDude.coords, self.__DUDE_HEIGHT)
 
     def makeNoise(self, message, center):
         """
@@ -597,7 +596,7 @@ class Layer(list):
     def getArray(self):
         array = arrays.empty_str_array(self.dimensions)
         for item in self:
-            array[item.coords] = item.glyph
+            array[item.coords] = item.getCurGlyph()
         return array
     
     def append(self, item):

@@ -316,10 +316,8 @@ class BombTick(Action):
 
     def do(self):
         bomb_condition = self.source.conditions["timebomb"]
-        if bomb_condition.timer in (1, 2):
-            self.source.currentLevel.changeDudeGlyph(self.source,
-                symbol.Glyph(self.source.glyph.char, bomb_condition.GRENADE_COLORS[bomb_condition.timer]))
         bomb_condition.timer -= 1
+        self.source.currentLevel.refreshDudeGlyph(self.source)
         return self.source.speed
 
 class Detonate(Action):
@@ -530,8 +528,8 @@ class ThrowGrenade(Action):
             return Detonate(target).do()
 
         grenade = self.source.currentLevel.definition.monster_factory.create("grenade")
-        grenade.giveCondition(cond.TimeBomb(3))
         self.source.currentLevel.addDude(grenade, self.target_coords)
+        grenade.giveCondition(cond.TimeBomb(3))
         return self.source.speed
 
 class HasteMonster(Action):

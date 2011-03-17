@@ -101,6 +101,20 @@ class Dude(fixedobj.FixedObject):
                 return "an" + " " + self.name
             else:
                 return str(commonNounPreceder) + " " + self.name
+
+    def getCurGlyph(self):
+        """
+        Get the glyph that currently represents the dude.
+
+        This may be different from its "base" glyph, which is dude.glyph.
+        """
+
+        ret_glyph = copy.copy(self.glyph)
+        
+        for condition in self.conditions.values():
+            ret_glyph = condition.modifyGlyph(ret_glyph)
+
+        return ret_glyph
     
     def canMove(self, moveCoords):
         """
@@ -163,6 +177,8 @@ class Dude(fixedobj.FixedObject):
             self.removeCondition(condition.name)
         self.conditions[condition.name] = condition
         condition.apply(self)
+# Many conditions change the dude's glyph.
+        self.currentLevel.refreshDudeGlyph(self)
 
     def removeCondition(self, condition_name):
         """
@@ -264,9 +280,6 @@ class Monster(Dude):
         """
         self.resetFOV()
 
-        if self.currentLevel.player in self.fov:
-            log.log("Player seen when beginning action.")
-
         cond_action = self.getConditionAction()
         if cond_action is None:
             cur_action = self.getAction()
@@ -310,12 +323,9 @@ class Monster(Dude):
         Calculate the action of a monster who sees the player.
         """
 
-        log.log("Fighting.")
-        
         if self.currentLevel.player not in self.fov:
             if self.player_last_location is not None:
 # The player has escaped!  Find a likely square where he could have gone.
-                log.log("Lost you, but in pursuit!")
                 adjacent_coords = coordinates.adjacent_coords(self.player_last_location)
                 legal_coords = [i for i in adjacent_coords 
                     if coordinates.legal(i, self.currentLevel.dimensions)]
@@ -326,7 +336,6 @@ class Monster(Dude):
 
                 if len(out_of_vision_coords) > 0:
 # There is a possible escape route!  Pursue!
-                    log.log("I see a way to pursue!")
                     self.direction = coordinates.subtract(
                         rng.choice(out_of_vision_coords), 
                         self.player_last_location)
@@ -340,7 +349,6 @@ class Monster(Dude):
                     return self.traveling()
                 else:
 # There is no possible escape route; give up and rest.
-                    log.log("I've lost you.")
                     self.state = ais.RESTING
                     return self.resting()
 
@@ -349,7 +357,6 @@ class Monster(Dude):
 
         else:
             self.player_last_location = self.currentLevel.player.coords
-            log.log("I know where you are!")
 
             if self.AICode == "CLOSE":
                 return self.closeToPlayer()
@@ -376,8 +383,6 @@ class Monster(Dude):
 # self.path[1] should be the square the monster wants to move to.
 # self.path[-1] should be the monster's ultimate destination.
         
-        log.log("Traveling.")
-
         assert self.path != None, \
             "Despite the monster being in state TRAVELING, the path variable is null."
 
@@ -434,8 +439,6 @@ class Monster(Dude):
         Calculate the action of a monster without a specific goal in mind.
         """
 
-        log.log("Wandering.")
-
         if self.currentLevel.player in self.fov:
             self.state = ais.FIGHTING
             return self.fighting()
@@ -462,7 +465,6 @@ class Monster(Dude):
 
         if self.currentLevel.player in self.fov:
             self.state = ais.FIGHTING
-            log.log("Though I was resting, I saw you and stopped!")
             return self.fighting()
         else:
             return action.Wait(self)

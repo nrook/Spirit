@@ -5,6 +5,9 @@ Governs 'conditions', status effects that modify a Dude's movement in some way.
 import action
 import coordinates
 import symbol
+import log
+
+HASTE_COLOR = (0, 255, 255)
 
 class Condition(object):
     """
@@ -60,6 +63,15 @@ class Condition(object):
         """
         return act
 
+    def modifyGlyph(self, glyph):
+        """
+        Modify the glyph of a dude to be displayed.
+
+        Returns: the new glyph which should be displayed.
+        """
+
+        return glyph
+
     def apply(self, dude_):
         """
         Apply any effects that occur when the condition is given to a dude.
@@ -98,6 +110,13 @@ class Haste(Condition):
     def __init__(self, duration):
         Condition.__init__(self, duration, "haste")
 
+    def modifyGlyph(self, glyph):
+        """
+        Turn the hasted thing a funny color to indicate its haste.
+        """
+
+        return symbol.Glyph(glyph.char, HASTE_COLOR)
+
     def apply(self, dude_):
         dude_.speed /= 2
 
@@ -108,13 +127,18 @@ class TimeBomb(Condition):
     """
     A condition in which a dude explodes after a certain number of turns.
     """
-    GRENADE_COLORS = {2 : (255, 255, 0),
-                      1 : (255, 65, 0),}
+    GRENADE_COLORS = {3 : (0, 255, 0),
+                      2 : (0, 255, 0),
+                      1 : (255, 255, 0),
+                      0 : (255, 65, 0)}
     EXPLOSION_GLYPH = symbol.Glyph('#', (255, 0, 0))
     def __init__(self, timer):
         Condition.__init__(self, 0, "timebomb")
         self.timer = timer
         self.exploded = False
+
+    def modifyGlyph(self, glyph):
+        return symbol.Glyph(glyph.char, self.GRENADE_COLORS[self.timer])
 
     def passTurn(self):
         pass
@@ -128,12 +152,6 @@ class TimeBomb(Condition):
             return action.Detonate(dude_)
         else:
             return action.BombTick(dude_)
-    
-    def timer_tick(self):
-        if self.timer == 1 or self.timer == 2:
-            dude_.currentLevel.changeDudeGlyph(dude_,
-                symbol.Glyph(dude_.glyph.char, self.GRENADE_COLORS[self.timer]))
-        self.timer -= 1
 
 class Resting(Condition):
     """

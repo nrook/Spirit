@@ -43,3 +43,6 @@ class FixedObject(object):
     
     def setCurrentLevel(self, currentLevel):
         self.currentLevel = currentLevel
+
+    def getCurGlyph(self):
+        return self.glyph
