@@ -12,6 +12,7 @@ import cPickle
 import tcod_display as display
 import level
 import dude
+import pc
 import config
 import coordinates
 import symbol
@@ -34,7 +35,7 @@ def main(win = None):
         save_data = fileio.restore_save("John Stenibeck.sav")
     except IOError:
 # No save; load from a random dungeon instead.
-        player = dude.Player("John Stenibeck", (40, 40))
+        player = pc.Player("John Stenibeck", (40, 40))
         curlev = mapgen.randomLevel(floor_defs[1], player)
     else:
         (player, floor) = save_data
