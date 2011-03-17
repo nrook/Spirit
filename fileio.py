@@ -101,7 +101,8 @@ def getMonster(linelist, initline = 0):
     
     return dude.Monster(attrDict["name"],
                         None, 
-                        symbol.Glyph(attrDict["glyph"], (int(attrDict["r"]), int(attrDict["g"]), int(attrDict["b"]))),
+                        symbol.Glyph(attrDict["glyph"], (int(attrDict["r"]), 
+                            int(attrDict["g"]), int(attrDict["b"]))),
                         attrDict["ai"],
                         int(attrDict["speed"]),
                         int(attrDict["hp"]),
@@ -145,10 +146,13 @@ def getFloorDef(monster_factory, linelist, initline = 0):
     try:
         monstersline = findTag(linelist, "[MONSTERS]", initline, lastline)
     except exc.TagLocationError:
-        raise exc.InvalidDataError("No \"[MONSTERS]\" line found in levels.dat between %d and %d" % (initline, lastline))
+        raise exc.InvalidDataError(
+            "No \"[MONSTERS]\" line found in levels.dat between %d and %d" 
+            % (initline, lastline))
     else:
         endline = findTag(linelist, "[END]", monstersline, lastline)
-        raritylist = [(int(j), i) for (i, j) in labelDict(linelist, monstersline, endline, ':').items()]
+        raritylist = [(int(j), i) for (i, j) in labelDict(
+            linelist, monstersline, endline, ':').items()]
     
     attrDict = labelDict(linelist, initline + 1, lastline)
 
@@ -158,7 +162,8 @@ def getFloorDef(monster_factory, linelist, initline = 0):
     
     return dude.Monster(attrDict["name"],
                         None, 
-                        symbol.Glyph(attrDict["glyph"], (int(attrDict["r"]), int(attrDict["g"]), int(attrDict["b"]))),
+                        symbol.Glyph(attrDict["glyph"], (int(attrDict["r"]), 
+                            int(attrDict["g"]), int(attrDict["b"]))),
                         attrDict["ai"],
                         int(attrDict["speed"]),
                         int(attrDict["hp"]),
@@ -178,7 +183,8 @@ def findTag(linelist, tag, startLine = 0, dontGoPast = None):
     dontGoPast.  findTag raises a TagLocationError if the tag isn't there.
     """
     
-    for i in range(startLine, dontGoPast if dontGoPast is not None else len(linelist)):
+    for i in range(startLine, dontGoPast if dontGoPast is not None 
+            else len(linelist)):
         if tag == linelist[i]:
             return i
     
