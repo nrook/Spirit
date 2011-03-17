@@ -600,17 +600,7 @@ class MonsterFactory(list):
     """
     Getting a monster from this factory with [] gives you a duplicate.
     """
-    
-# Represents the chances of finding a monster, relative to the difference
-# between that monster's level and the dlvl it is found on.
-    DLVL_RARITY = collections.defaultdict(lambda: 0,
-                  {-2:1,
-                   -1:3,
-                    0:5,
-                    1:3,
-                    2:1,
-                  })
-    
+
     def __init__(self, *args, **kwds):
         """
         Create a new MonsterFactory, given a list of monsters (or nothing).
@@ -618,48 +608,6 @@ class MonsterFactory(list):
         list.__init__(self, *args, **kwds)
         self.buggy_monster = None
 
-    def getRandomMonster(self, dlvl):
-        """
-        Get a duplicate of a random monster in the MonsterFactory.
-        """
-        
-        monster_selection_container, total = self.getMonsterSelection(dlvl)
-        if total == 0 or len(monster_selection_container) == 0:
-            return self.getBuggyMonster()
-
-        random_number = rng.randInt(0, total - 1)
-        for i in monster_selection_container:
-            random_number -= i[0]
-            if random_number < 0:
-                return duplicate(i[1])
-
-    def getMonsterSelection(self, dlvl):
-        """
-        Return a container representing the rarity of monsters on a level.
-
-        dlvl - the level of the dungeon on which the monsters are appearing.
-
-        returns - a tuple of the form
-            ([(rarity_1, monster_1), ..., (rarity_k, monster_k)], total).
-            rarity_x is an integer representing the chance that a monster
-            will appear; higher is more likely.  total is the total rarity
-            of all the monsters involved.
-        """
-
-        total = 0
-        selection_list = []
-        for i in self:
-            if "do_not_naturally_generate" in i.tags:
-                rarity = 0
-            else:
-                rarity = self.DLVL_RARITY[i.char_level - dlvl]
-
-            if rarity != 0:
-                selection_list.append((rarity, i))
-                total += rarity
-
-        return (selection_list, total)
-    
     def create(self, key, coords = None, currentLevel = None):
         """
         Get a duplicate of the monster identified (by int or string) as key.
