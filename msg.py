@@ -61,7 +61,7 @@ class MessageBuffer(object):
 
         ret_array = arrays.empty_str_array(self.dimensions)
         lines_to_use = self.message_list[-self.dimensions[1]:]
-        lines_to_use.reverse()
+        # lines_to_use.reverse()
         for i in range(len(lines_to_use)):
             arrays.print_str_to_end_of_line((0, i), lines_to_use[i], ret_array)
 
