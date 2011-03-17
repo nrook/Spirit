@@ -10,6 +10,29 @@ import log
 import dude
 import config
 
+NUM_SECTORS_X = 4
+NUM_SECTORS_Y = 4
+NUMBER_OF_MONSTERS = 9
+MAX_SIZE_X = 120
+MAX_SIZE_Y = 120
+SECTOR_SIZE_X = 12
+SECTOR_SIZE_Y = 12
+NW_CORNER_X = 10
+NW_CORNER_Y = 10
+MIN_ROOM_SIZE = 3
+MAX_ROOM_SIZE = 8
+
+class st:
+    """
+    A glorified enum of sector types.
+    """
+    (
+    EMPTY,
+    ROOM,
+    DOUBLE_ROOM,
+    CORRIDOR,
+    ) = range(4)
+
 def randomDungeon():
     """
     Gets a random dungeon, using a very simple room/corridor model.
@@ -22,74 +45,74 @@ def randomDungeon():
     This is coded terribly because it will be replaced someday.
     """
     
-    map_dimensions = (60, 60)
-    map_nwcorner = (10, 10)
-    sector_size = (12, 12)
+    map_dimensions = (MAX_SIZE_X, MAX_SIZE_Y)
+    map_nwcorner = (NW_CORNER_X, NW_CORNER_Y)
+    sector_size = (SECTOR_SIZE_X, SECTOR_SIZE_Y)
+    sector_list = [(x, y) for x in range(NUM_SECTORS_X) 
+                          for y in range(NUM_SECTORS_Y)]
     sector_nwcorners = {}
-    for x in range(0, 3):
-        for y in range(0, 3):
+    for x in range(NUM_SECTORS_X):
+        for y in range(NUM_SECTORS_Y):
             sector_nwcorners[(x, y)] = (
                 map_nwcorner[0] + sector_size[0] * x,
                 map_nwcorner[1] + sector_size[1] * y
                 )
                 
     sector_types = {}
-    for x in range(0, 3):
-        for y in range(0, 3):
+    for x in range(NUM_SECTORS_X):
+        for y in range(NUM_SECTORS_Y):
             percent = rng.randInt(1, 100)
-            if percent <= 60:
-                sector_types[(x, y)] = 1 # it's a room!
+            if percent <= 25:
+                sector_types[(x, y)] = st.ROOM
+            elif percent <= 60:
+                sector_types[(x, y)] = st.DOUBLE_ROOM
             elif percent <= 75:
-                sector_types[(x, y)] = 2 # it's a corridor!
+                sector_types[(x, y)] = st.CORRIDOR
             else:
-                sector_types[(x, y)] = 0 # it's empty!
+                sector_types[(x, y)] = st.EMPTY
     
     room_nwcoords = {}
     room_secoords = {}
     
     for sector_coords in sector_types.keys():
-        if sector_types[sector_coords] == 1:
-            room_created = False
-            sector_nw = sector_nwcorners[sector_coords]
-            sector_se = (sector_nw[0] + sector_size[0] - 1, sector_nw[1] + sector_size[1] - 1)
-            while not room_created:
-                room_nw = (rng.randInt(sector_nw[0], sector_se[0]),
-                           rng.randInt(sector_nw[1], sector_se[1]))
-                room_se = (room_nw[0] + rng.randInt(3, 8),
-                           room_nw[1] + rng.randInt(3, 8))
-            
-                # check validity of room dimensions
-                if room_se[0] <= sector_se[0] and room_se[1] <= sector_se[1]:
-                    room_nwcoords[sector_coords] = room_nw
-                    room_secoords[sector_coords] = room_se
-                    room_created = True
+        sector_nw = sector_nwcorners[sector_coords]
+        sector_se = (sector_nw[0] + sector_size[0] - 1,
+                     sector_nw[1] + sector_size[1] - 1)
+
+        if sector_types[sector_coords] in (st.ROOM, st.DOUBLE_ROOM):
+            (room_nwcoords[sector_coords], room_secoords[sector_coords]) \
+                = choose_room_corners(sector_nw, sector_se)
                     
-        elif sector_types[sector_coords] == 2:
+        elif sector_types[sector_coords] == st.CORRIDOR:
             # A corridor is currently implemented as just a 1-space room.
-            corridor_coords = (rng.randInt(sector_nwcorners[sector_coords][0],
-                                           sector_nwcorners[sector_coords][0] + sector_size[0] - 1,),
-                               rng.randInt(sector_nwcorners[sector_coords][1],
-                                           sector_nwcorners[sector_coords][1] + sector_size[1] - 1,))
+            corridor_coords = (rng.randInt(sector_nw[0], sector_se[0]),
+                rng.randInt(sector_nw[1], sector_se[1]))
+
             room_nwcoords[sector_coords] = corridor_coords
             room_secoords[sector_coords] = corridor_coords
     
     # Check whether everywhere is accessible; if not, do a redo.
     sector_is_accessible = {}
-    for x in range(3):
-        for y in range(3):
+    for x in range(NUM_SECTORS_X):
+        for y in range(NUM_SECTORS_Y):
             sector_is_accessible[(x, y)] = False
     
-    for coord in ((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)):
-        if True not in sector_is_accessible.values() and sector_types[coord] != 0:
+    for coord in sector_list:
+
+        if True not in sector_is_accessible.values() \
+            and sector_types[coord] != 0:
+
             sector_is_accessible[coord] = True
         
-        if sector_is_accessible[coord] == True and sector_types[coord] != 0:
+        if sector_is_accessible[coord] == True \
+            and sector_types[coord] != st.EMPTY:
+
             for coord_adjustment in ((1, 0), (0, 1), (-1, 0), (0, -1)):
                 adjacent_coord = coordinates.add(coord, coord_adjustment)
                 if (adjacent_coord[0] >= 0 and
-                    adjacent_coord[0] < 3 and
+                    adjacent_coord[0] < NUM_SECTORS_X and
                     adjacent_coord[1] >= 0 and
-                    adjacent_coord[1] < 3):
+                    adjacent_coord[1] < NUM_SECTORS_Y):
                     
                     sector_is_accessible[adjacent_coord] = True
     
@@ -98,33 +121,77 @@ def randomDungeon():
             # Oops.  Give up and try again.
             return randomDungeon()
     
-    entrance_sector = rng.choice([coords for coords in sector_types.keys() if sector_types[coords] == 1])
-    exit_sector = rng.choice([coords for coords in sector_types.keys() if sector_types[coords] == 1])
-    entrance_coords = rng.randomPointInRect(room_nwcoords[entrance_sector], room_secoords[entrance_sector])
-    exit_coords = rng.randomPointInRect(room_nwcoords[exit_sector], room_secoords[exit_sector])
+    entrance_sector = rng.choice([coords for coords in sector_types.keys() 
+                                 if sector_types[coords] == 1])
+    exit_sector = rng.choice([coords for coords in sector_types.keys() 
+                              if sector_types[coords] == 1])
+    entrance_coords = rng.randomPointInRect(room_nwcoords[entrance_sector], 
+                                            room_secoords[entrance_sector])
+    exit_coords = rng.randomPointInRect(room_nwcoords[exit_sector], 
+                                        room_secoords[exit_sector])
     
     ret_dungeon = level.empty_dungeon(map_dimensions)
     
-    for coord in ((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)):
-        if sector_types[coord] != 0:
-            for x in range(room_nwcoords[coord][0], room_secoords[coord][0] + 1):
-                for y in range(room_nwcoords[coord][1], room_secoords[coord][1] + 1):
-                    if sector_types[coord] == 1:
-                        ret_dungeon[(x, y)] = level.ROOM_INTERIOR_GLYPH
-                    else:
-                        ret_dungeon[(x, y)] = level.CORRIDOR_GLYPH
+    for coord in sector_list:
+        if sector_types[coord] != st.EMPTY:
+            if sector_types[coord] == st.CORRIDOR:
+                fill_glyph = level.CORRIDOR_GLYPH
+            else:
+                fill_glyph = level.ROOM_INTERIOR_GLYPH
+
+            arrays.fill_rect(ret_dungeon, room_nwcoords[coord], 
+                room_secoords[coord], fill_glyph)
             
+# If there is another room to the south or east, make a corridor from this room
+# to it.
             for coord_adjustment in ((1, 0), (0, 1)):
                 adjacent_coord = coordinates.add(coord, coord_adjustment)
-                if (adjacent_coord[0] < 3 and adjacent_coord[1] < 3 and sector_types[adjacent_coord] != 0):
+                if (adjacent_coord[0] < NUM_SECTORS_X 
+                    and adjacent_coord[1] < NUM_SECTORS_Y
+                    and sector_types[adjacent_coord] != 0):
+
                     make_corridor(ret_dungeon,
-                        rng.randomPointInRect(room_nwcoords[coord], room_secoords[coord]),
-                        rng.randomPointInRect(room_nwcoords[adjacent_coord], room_secoords[adjacent_coord]))
+                        rng.randomPointInRect(room_nwcoords[coord], 
+                                              room_secoords[coord]),
+                        rng.randomPointInRect(room_nwcoords[adjacent_coord], 
+                                              room_secoords[adjacent_coord]))
+
+# If the room type is DOUBLE_ROOM, bolt on a second room to the first.
+# This room can overflow! That is intentional.
+            if sector_types[coord] == st.DOUBLE_ROOM:
+                max_second_se = (room_secoords[coord][0] + MIN_ROOM_SIZE,
+                                 room_secoords[coord][1] + MIN_ROOM_SIZE)
+                (second_nw, second_se) = choose_room_corners(
+                    room_nwcoords[coord], max_second_se)
+
+                arrays.fill_rect(ret_dungeon, second_nw, second_se, 
+                    level.ROOM_INTERIOR_GLYPH)
     
     ret_dungeon[entrance_coords] = level.UPSTAIRS_GLYPH
     ret_dungeon[exit_coords] = level.DOWNSTAIRS_GLYPH
     
     return ret_dungeon
+
+def choose_room_corners(possible_nw, possible_se):
+    """
+    Generate possible northwest and southeast corners for a room.
+
+    possible_nw: the upper-left-most possible square in which the room can be.
+    possible_se: the lower-right-most possible square in which the room can be.
+    """
+    if (possible_nw[0] + MIN_ROOM_SIZE > possible_se[0]
+        or possible_nw[1] + MIN_ROOM_SIZE > possible_se[1]):
+        raise ValueError("Not enough room for a room in %s, %s."
+            % (possible_nw, possible_se))
+    while True:
+        room_nw = (rng.randInt(possible_nw[0], possible_se[0]),
+                    rng.randInt(possible_nw[1], possible_se[1]))
+        room_se = (room_nw[0] + rng.randInt(MIN_ROOM_SIZE, MAX_ROOM_SIZE),
+                  (room_nw[1] + rng.randInt(MIN_ROOM_SIZE, MAX_ROOM_SIZE)))
+            
+        # check validity of room dimensions
+        if room_se[0] <= possible_se[0] and room_se[1] <= possible_se[1]:
+            return (room_nw, room_se)
 
 def make_corridor(dungeon, start_coords, end_coords):
     """
@@ -133,7 +200,8 @@ def make_corridor(dungeon, start_coords, end_coords):
     
     # Identify the dimension over which most of the travel is happening, and
     # allow the rest of the code to work in a dimension-agnostic manner.
-    if abs(end_coords[0] - start_coords[0]) > abs(end_coords[1] - start_coords[1]):
+    if (abs(end_coords[0] - start_coords[0]) > 
+        abs(end_coords[1] - start_coords[1])):
         major_dimension = 0
         minor_dimension = 1
     else:
@@ -149,9 +217,11 @@ def make_corridor(dungeon, start_coords, end_coords):
     
     # The kink is the major dimension coordinate at which the corridor starts
     # moving on the minor dimension, not the major dimension.
-    kink_major_coordinate = rng.randInt(first_coords[major_dimension], last_coords[major_dimension])
+    kink_major_coordinate = rng.randInt(first_coords[major_dimension], 
+                                        last_coords[major_dimension])
     
-    for major_coordinate in range(first_coords[major_dimension], kink_major_coordinate + 1):
+    for major_coordinate in range(first_coords[major_dimension], 
+                                  kink_major_coordinate + 1):
         current_coords = [0, 0]
         current_coords[major_dimension] = major_coordinate
         current_coords[minor_dimension] = first_coords[minor_dimension]
@@ -160,9 +230,11 @@ def make_corridor(dungeon, start_coords, end_coords):
             dungeon[current_coords] = level.CORRIDOR_GLYPH
     
     if first_coords[minor_dimension] <= last_coords[minor_dimension]:
-        minor_coordinate_range = range(first_coords[minor_dimension], last_coords[minor_dimension] + 1)
+        minor_coordinate_range = range(first_coords[minor_dimension], 
+                                       last_coords[minor_dimension] + 1)
     else:
-        minor_coordinate_range = range(last_coords[minor_dimension], first_coords[minor_dimension] + 1)
+        minor_coordinate_range = range(last_coords[minor_dimension], 
+                                       first_coords[minor_dimension] + 1)
     
     for minor_coordinate in minor_coordinate_range:
         current_coords = [0, 0]
@@ -172,7 +244,8 @@ def make_corridor(dungeon, start_coords, end_coords):
         if dungeon[current_coords] == config.TRANSPARENT_GLYPH:
             dungeon[current_coords] = level.CORRIDOR_GLYPH
     
-    for major_coordinate in range(kink_major_coordinate, last_coords[major_dimension] + 1):
+    for major_coordinate in range(kink_major_coordinate, 
+                                  last_coords[major_dimension] + 1):
         current_coords = [0, 0]
         current_coords[major_dimension] = major_coordinate
         current_coords[minor_dimension] = last_coords[minor_dimension]
@@ -185,8 +258,6 @@ def populate_level(pop_level, floor_def):
     Populate a given level with monsters.
     """
 
-    NUMBER_OF_MONSTERS = 9
-    
     level_nwcorner = (0, 0)
     level_secorner = [dim - 1 for dim in pop_level.dimensions]
 
@@ -194,9 +265,11 @@ def populate_level(pop_level, floor_def):
         monster_to_be_made = floor_def.getRandomMonster()
         monster_has_been_created = False
         while not monster_has_been_created:
-            monster_coords = rng.randomPointInRect(level_nwcorner, level_secorner)
-            if pop_level.dungeonGlyph(monster_coords) in level.PASSABLE_TERRAIN and \
-                monster_coords not in pop_level.dudeLayer:
+            monster_coords = rng.randomPointInRect(
+                level_nwcorner, level_secorner)
+            if (pop_level.dungeonGlyph(monster_coords) in 
+                level.PASSABLE_TERRAIN
+                and monster_coords not in pop_level.dudeLayer):
                 
                 pop_level.addDude(monster_to_be_made, monster_coords, False)
                 monster_has_been_created = True
@@ -219,7 +292,8 @@ def randomLevel(floor_def, player):
     elements[exit_coords] = level.UPSTAIRS_GLYPH
     dungeon[exit_coords] = level.ROOM_INTERIOR_GLYPH
     
-    ret_level = level.Level(dungeon.shape, floor_def.floor, None, elements, dungeon, floor_def)
+    ret_level = level.Level(dungeon.shape, floor_def.floor, None, elements, 
+        dungeon, floor_def)
     
     if player is not None:
         ret_level.addPlayer(player, entrance_coords)

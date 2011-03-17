@@ -295,3 +295,23 @@ def copy_array(array_to_copy):
     """
 
     return array_to_copy.copy()
+
+def fill_rect(array, nw_corner, se_corner, val):
+    """
+    Fill a rectangle in an array with a certain symbol.
+
+    array - the array to be modified.
+    nw_corner - the northwest corner of the rectangle to be filled.
+    se_corner - the southeast corner of the rectangle to be filled. (Inclusive.)
+    val - the value with which the rectangle should be filled.
+    """
+
+    if (nw_corner[0] < 0 or nw_corner[1] < 0):
+        raise ValueError("Northwest corner %s too high" % nw_corner)
+    if (se_corner[0] >= array.shape[0] or se_corner[1] >= array.shape[1]):
+        raise ValueError("Southeast corner %s too low for array of shape %s"
+            % (se_corner, array.shape))
+
+    for i in range(nw_corner[0], se_corner[0] + 1):
+        for j in range(nw_corner[1], se_corner[1] + 1):
+            array[i,j] = val
