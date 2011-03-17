@@ -432,6 +432,9 @@ class Player(Dude):
                     self.currentLevel.messages,
                     "In which direction would you like to use the %s card?"
                     % card_to_use.ability_name)
+                if direction_of_target_square is None:
+                    self.currentLevel.messages.append("Never mind.")
+                    return action.DoNothing()
             if card_to_use.is_melee:
                 target_square = coordinates.add(self.coords, direction_of_target_square)
                 if target_square in self.currentLevel.dudeLayer:

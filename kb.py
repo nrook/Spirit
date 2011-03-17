@@ -92,6 +92,7 @@ ord('N') : kp.NO,
 }
 
 directionTranslationTable = {
+27       : kp.ESCAPE,
 ord('k') : kp.N,
 ord('u') : kp.NE,
 ord('l') : kp.E,
@@ -141,7 +142,9 @@ DIRECTION_SWITCH =  {
                     kp.SE: (1, 1),
                     kp.E: (1, 0),
                     kp.NE: (1, -1),
-                    kp.N: (0, -1)}
+                    kp.N: (0, -1),
+                    kp.ESCAPE: None,
+                    }
 
 import tcod_display as display
 
@@ -210,7 +213,7 @@ def direction_question(messages, prompt):
     prompt - the message to be displayed to the player to prompt a response.
 
     Return a tuple of coordinates representing the direction the player
-    chose.
+    chose. Return None if the player chose no direction.
     """
 
     response_key = question(messages, prompt, "direction")
