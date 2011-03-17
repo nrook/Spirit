@@ -4,6 +4,7 @@ floor=1
 lancer:11
 boxer:3
 grenadier:1
+idol:20
 [END]
 [ENDSEC]
 
@@ -24,7 +25,7 @@ lancer:1
 boxer:6
 grenadier:3
 archer:3
-q.statue:1
+idol:1
 spider:1
 [END]
 [ENDSEC]
@@ -35,7 +36,7 @@ floor=4
 boxer:4
 grenadier:2
 archer:5
-q.statue:1
+idol:1
 spider:3
 [END]
 [ENDSEC]

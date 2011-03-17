@@ -7,7 +7,7 @@ MON_ABILITY_DICT = {
     "archer": {"code":"ARROW", "aname":"Fire arrow", "is_melee":False, "is_directional":True,},
     "spider": {"code":"STICK", "aname":"Spin web", "is_melee":True, "is_directional":True,},
     "tiger": {"code":"POUNCE", "aname":"Pounce", "is_melee":False, "is_directional":True,},
-    "q.statue": {"code":"HASTEALL", "aname":"Quickening field", "is_melee":False, "is_directional":False,},
+    "idol": {"code":"HASTEALL", "aname":"Quickening field", "is_melee":False, "is_directional":False,},
 }
 
 class Deck(object):

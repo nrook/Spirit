@@ -579,7 +579,9 @@ class Monster(Dude):
 
 # If there are no monsters to which the statue can teleport, teleport randomly.
         for i in range(100):
-            destination = rng.randomPointInRect((0,0), (self.currentLevel.dimensions[0] - 1, self.currentLevel.dimensions[1] - 1))
+            destination = rng.randomPointInRect((0,0), 
+                (self.currentLevel.dimensions[0] - 1, 
+                self.currentLevel.dimensions[1] - 1))
             if self.currentLevel.isEmpty(destination) and \
                 destination not in self.currentLevel.dudeLayer:
                 
