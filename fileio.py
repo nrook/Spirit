@@ -55,9 +55,6 @@ def getFile(filename):
                 else:
                     linelist.append(line[:-1] if line[-1] == '\n' else line)
             
-        #linelist = configfile.readlines()
-    
-    #linelist = [(line[:-1] if line[-1] == '\n' else line) for line in linelist]
     return linelist
 
 def getMonsterFactory(linelist, initline = 0):
