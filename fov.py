@@ -51,7 +51,7 @@ class fov(object):
         map = level_.sight_map
 
         tcod.map_compute_fov(map, initial_location[0], 
-            initial_location[1], FOV_RADIUS, True, tcod.FOV_BASIC)
+            initial_location[1], FOV_RADIUS, True, tcod.FOV_SHADOW)
 
         border = set()
         fov_set = set()
