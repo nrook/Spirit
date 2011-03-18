@@ -46,6 +46,15 @@ class ais:
      RESTING,   # The monster is not moving.
      ) = range(4)
 
+class qt:
+    """
+    A glorified enum of types of things which take turns.
+    """
+    (PLAYER,
+     MONSTER,
+     EVENT,
+     ) = range(3)
+
 class Dude(fixedobj.FixedObject):
     """
     A generic creature; all players and monsters come from Dudes.
@@ -115,6 +124,13 @@ class Dude(fixedobj.FixedObject):
             ret_glyph = condition.modifyGlyph(ret_glyph)
 
         return ret_glyph
+
+    def getType(self):
+        """
+        Get the type of queueable thing this dude is.
+        """
+
+        raise NotImplementedError("Only implemented in Dude's children.")
     
     def canMove(self, moveCoords):
         """
@@ -149,7 +165,7 @@ class Dude(fixedobj.FixedObject):
     def isPlayer(self):
         """Returns True if this Dude is the player, False otherwise."""
         
-        return False # Player class contains an implementation that returns True
+        return self.getType() == qt.PLAYER
     
     def setHP(self, newHP):
         """
@@ -270,6 +286,9 @@ class Monster(Dude):
         self.player_last_location = None
         self.spec = spec
         self.specfreq = specfreq
+
+    def getType(self):
+        return qt.MONSTER
     
     def act(self):
         """

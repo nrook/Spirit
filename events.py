@@ -12,6 +12,7 @@ import symbol
 import coordinates
 import kb
 import config
+import dude
 
 class Event(object):
     """
@@ -31,6 +32,9 @@ class Event(object):
 
     def isPlayer(self):
         return False
+
+    def getType(self):
+        return dude.qt.EVENT
 
 class LevelTick(Event):
     """
@@ -56,6 +60,20 @@ class LevelTick(Event):
         """
         self.currentLevel.player.deck.draw()
         return config.TURN_TICKS
+
+class summoningEvent(Event):
+    """
+    An event which creates enemies when all enemies on the field are dead.
+    """
+
+    def __init__(self, currentLevel):
+        Event.__init__(self, currentLevel)
+        self.summons_so_far = 0
+
+    def act(self):
+        """
+        Check if all enemies are dead. If so, summon new ones.
+        """
 
 def isEventAtCoords(event_class, coords, level_):
     """

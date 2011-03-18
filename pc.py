@@ -57,6 +57,9 @@ class Player(dude.Dude):
         self.memory = set()
         self.fov.updateMemory(self.memory)
 
+    def getType(self):
+        return dude.qt.PLAYER
+
     def getSidebar(self):
         """
         Get the sidebar of this player, creating it if necessary.
