@@ -46,7 +46,7 @@ floor=5
 boxer:2
 grenadier:1
 archer:4
-q.statue:1
+idol:1
 spider:7
 [END]
 [ENDSEC]
@@ -57,7 +57,7 @@ floor=6
 boxer:1
 grenadier:1
 archer:5
-q.statue:2
+idol:2
 spider:5
 tiger:1
 [END]

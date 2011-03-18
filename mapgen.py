@@ -9,10 +9,11 @@ import level
 import log
 import dude
 import config
+import fileio
 
 NUM_SECTORS_X = 4
-NUM_SECTORS_Y = 4
-NUMBER_OF_MONSTERS = 9
+NUM_SECTORS_Y = 3
+NUMBER_OF_MONSTERS = 0
 MAX_SIZE_X = 120
 MAX_SIZE_Y = 120
 SECTOR_SIZE_X = 12
@@ -122,9 +123,11 @@ def randomDungeon():
             return randomDungeon()
     
     entrance_sector = rng.choice([coords for coords in sector_types.keys() 
-                                 if sector_types[coords] == 1])
+                                 if sector_types[coords] in 
+                                 (st.ROOM, st.DOUBLE_ROOM)])
     exit_sector = rng.choice([coords for coords in sector_types.keys() 
-                              if sector_types[coords] == 1])
+                              if sector_types[coords] in
+                              (st.ROOM, st.DOUBLE_ROOM)])
     entrance_coords = rng.randomPointInRect(room_nwcoords[entrance_sector], 
                                             room_secoords[entrance_sector])
     exit_coords = rng.randomPointInRect(room_nwcoords[exit_sector], 
@@ -278,8 +281,29 @@ def randomLevel(floor_def, player):
     """
     If no player is supplied, the player slot is just left empty.
     """
+
+    if floor_def.floor == 8:
+        return bossLevel(floor_def.monster_factory, player)
     
     dungeon = randomDungeon()
+    ret_level = constructLevelFromDungeon(dungeon, floor_def, player)
+    
+    populate_level(ret_level, floor_def)
+
+    return ret_level
+
+def bossLevel(monster_factory, player):
+    
+    dungeon = fileio.getCustomDungeon("final.map")
+    floor_def = level.FloorDefinition(8, (), monster_factory)
+    ret_level = constructLevelFromDungeon(dungeon, floor_def, player)
+    return ret_level
+
+def constructLevelFromDungeon(dungeon, floor_def, player):
+    """
+    Returns an unpopulated but playable level using the dungeon given.
+    """
+
     elements = level.empty_elements(dungeon.shape)
     
     entrance_coords = arrays.index(level.DOWNSTAIRS_GLYPH, dungeon)
@@ -288,17 +312,16 @@ def randomLevel(floor_def, player):
     # elements[entrance_coords] = level.DOWNSTAIRS_GLYPH
     dungeon[entrance_coords] = level.ROOM_INTERIOR_GLYPH
     
-    exit_coords = arrays.index(level.UPSTAIRS_GLYPH, dungeon)
-    elements[exit_coords] = level.UPSTAIRS_GLYPH
-    dungeon[exit_coords] = level.ROOM_INTERIOR_GLYPH
+    exit_coords = arrays.find(level.UPSTAIRS_GLYPH, dungeon)
+    if exit_coords is not None:
+        elements[exit_coords] = level.UPSTAIRS_GLYPH
+        dungeon[exit_coords] = level.ROOM_INTERIOR_GLYPH
     
     ret_level = level.Level(dungeon.shape, floor_def.floor, None, elements, 
         dungeon, floor_def)
     
     if player is not None:
         ret_level.addPlayer(player, entrance_coords)
-    
-    populate_level(ret_level, floor_def)
 
     return ret_level
-    
+

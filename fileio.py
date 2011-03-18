@@ -13,6 +13,7 @@ import symbol
 import coordinates
 import exc
 import log
+import config # only for TRANSPARENT_GLYPH
 
 def save_game(player, floor):
     """
@@ -156,21 +157,48 @@ def getFloorDef(monster_factory, linelist, initline = 0):
     return level.FloorDefinition(int(attrDict["floor"]),
                                  raritylist,
                                  monster_factory)
-    
-    return dude.Monster(attrDict["name"],
-                        None, 
-                        symbol.Glyph(attrDict["glyph"], (int(attrDict["r"]), 
-                            int(attrDict["g"]), int(attrDict["b"]))),
-                        attrDict["ai"],
-                        int(attrDict["speed"]),
-                        int(attrDict["hp"]),
-                        tags,
-                        int(attrDict["atk"]),
-                        int(attrDict["def"]),
-                        attrDict["spec"],
-                        int(attrDict["specfreq"]),
-                        None
-                        )
+
+def getCustomDungeon(filename):
+    """
+    Return a dungeon recorded in a text file.
+    """
+
+    linelist = getFile(filename)
+
+    initline = findTag(linelist, "[MAP]", 0)
+    lastline = findTag(linelist, "[ENDMAP]", initline)
+
+    return constructDungeon(linelist[initline + 1:lastline])
+
+def constructDungeon(linelist):
+    """
+    Construct a dungeon from the list of lines provided.
+    """
+
+    dimensions = (len(linelist[0]), len(linelist))
+
+    ret_dungeon = level.empty_dungeon(dimensions)
+
+    for j in range(dimensions[1]):
+        for i in range(dimensions[0]):
+            cur_char = linelist[j][i]
+            if cur_char == '.':
+                final_glyph = level.ROOM_INTERIOR_GLYPH
+            elif cur_char == '#':
+                final_glyph = level.CORRIDOR_GLYPH
+            elif cur_char == '<':
+                final_glyph = level.UPSTAIRS_GLYPH
+            elif cur_char == '>':
+                final_glyph = level.DOWNSTAIRS_GLYPH
+            elif cur_char == ' ':
+                final_glyph = config.TRANSPARENT_GLYPH
+            else:
+                log.pasAss(True, "Invalid character loaded for dungeon: %s"
+                    % cur_char)
+
+            ret_dungeon[i, j] = final_glyph
+
+    return ret_dungeon
 
 def findTag(linelist, tag, startLine = 0, dontGoPast = None):
     """

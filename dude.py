@@ -567,6 +567,10 @@ class Monster(Dude):
                     return action.HasteAll(self, 8, False, False)
             else:
                 assert False
+
+# If the statue is stuck, it can't teleport, so it just stays.
+        if self.hasCondition("STUCK"):
+            return action.Wait(self)
         
 # If the statue did not do anything to monsters in view, it must teleport.
         for m in self.currentLevel.dudeLayer:
@@ -633,7 +637,8 @@ class MonsterFactory(list):
                 if key == mon.name:
                     soughtIndex = self.index(mon)
             if soughtIndex == -1:
-                raise ValueError("No monster with name %s found." % key)
+                log.log("No monster with name %s found." % key)
+                return self.buggy_monster
             else:
                 return list.__getitem__(self, soughtIndex)
 

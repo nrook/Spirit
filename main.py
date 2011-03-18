@@ -39,7 +39,10 @@ def main(win = None):
         curlev = mapgen.randomLevel(floor_defs[1], player)
     else:
         (player, floor) = save_data
-        curlev = mapgen.randomLevel(floor_defs[floor], player)
+        if floor == 8:
+            curlev = mapgen.bossLevel(floor_defs[1].monster_factory, player)
+        else:
+            curlev = mapgen.randomLevel(floor_defs[floor], player)
 
     display.init()
     display.display_main_screen(curlev.getFOVArray(),
@@ -51,9 +54,14 @@ def main(win = None):
         try:
             curlev.next()
         except exc.LevelChange:
-            saved_player = curlev.player
             new_floor = curlev.floor + 1
-            curlev = mapgen.randomLevel(floor_defs[new_floor], player)
+            curlev.player.clearMemory()
+            fileio.save_game(curlev.player, new_floor)
+            if new_floor < 8:
+                curlev = mapgen.randomLevel(floor_defs[new_floor], player)
+            else:
+                curlev = mapgen.bossLevel(curlev.definition.monster_factory, 
+                    player)
             curlev.player.clearMemory()
             curlev.messages.append("Welcome to the next floor!")
             curlev.player.levelUp()

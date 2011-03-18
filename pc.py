@@ -11,6 +11,7 @@ import coordinates
 import symbol
 import arrays
 import cards
+import events
 import cond
 import kb
 kp = kb.kp
