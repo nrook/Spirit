@@ -57,65 +57,6 @@ class LevelTick(Event):
         self.currentLevel.player.deck.draw()
         return config.TURN_TICKS
 
-class TimedExplosion(Event):
-    """
-    An Event which will set off an Explode action in a certain number of rounds.
-    """
-    GRENADE_GLYPHS = {2 : symbol.Glyph('o', (65, 255, 0)),
-                      1 : symbol.Glyph('o', (255, 255, 0)),
-                      0 : symbol.Glyph('o', (255, 65, 0)),}
-    EXPLOSION_GLYPH = symbol.Glyph('#', (255, 0, 0))
-
-    def __init__(self, currentLevel, coords, damage, time):
-        """
-        Create a TimedExplosion for the future.
-
-        currentLevel - the Level on which the explosion should occur.
-        coords - the coordinates on which the explosion should occur.
-        damage - the damage which the explosion should do.
-        time - the number of rounds which must pass before the explosion goes
-            off.  0 means the explosion occurs at the end of the turn, 1 at the
-            end of next turn, etc.
-        """
-
-        Event.__init__(self, currentLevel)
-        self.explode_action = action.Explode(currentLevel, coords, damage)
-        self.time = time
-        self.coords = coords
-        currentLevel.addSolidEffect(coords, self.GRENADE_GLYPHS[time])
-
-    def act(self):
-        """
-        Update the TimedExplosion, decrementing the timer and exploding if
-        time is up.
-        """
-
-        if self.time == 0:
-            # Explode.
-            self.currentLevel.messages.append("The grenade goes off!")
-            self.explode_action.do()
-            self.currentLevel.removeSolidEffect(self.coords, self.GRENADE_GLYPHS[0])
-            self.showExplosion()
-            self.die()
-        else:
-            self.time -= 1
-            self.currentLevel.removeSolidEffect(self.coords, self.GRENADE_GLYPHS[self.time+1])
-            self.currentLevel.addSolidEffect(self.coords, self.GRENADE_GLYPHS[self.time])
-
-        return config.TURN_TICKS
-
-    def showExplosion(self):
-        """
-        Cause the explosion effect to appear onscreen.
-        """
-
-        coords_in_explosion = coordinates.radius(1, self.coords, self.currentLevel.dimensions)
-        for i in coords_in_explosion:
-            self.currentLevel.addSolidEffect(i, self.EXPLOSION_GLYPH)
-        kb.pause(self.currentLevel.messages)
-        for i in coords_in_explosion:
-            self.currentLevel.removeSolidEffect(i)
-
 def isEventAtCoords(event_class, coords, level_):
     """
     Return whether there is an Event of a certain type scheduled to occur at a
@@ -135,6 +76,3 @@ def isEventAtCoords(event_class, coords, level_):
             return True
 
     return False
-
-def is_grenade_at_coords(coords, level_):
-    return isEventAtCoords(TimedExplosion, coords, level_)
