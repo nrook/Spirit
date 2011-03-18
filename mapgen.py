@@ -277,14 +277,11 @@ def populate_level(pop_level, floor_def):
                 pop_level.addDude(monster_to_be_made, monster_coords, False)
                 monster_has_been_created = True
 
-def randomLevel(floor_def, player):
+def _randomLevel(floor_def, player):
     """
     If no player is supplied, the player slot is just left empty.
     """
 
-    if floor_def.floor == 8:
-        return bossLevel(floor_def.monster_factory, player)
-    
     dungeon = randomDungeon()
     ret_level = constructLevelFromDungeon(dungeon, floor_def, player)
     
@@ -292,12 +289,22 @@ def randomLevel(floor_def, player):
 
     return ret_level
 
-def bossLevel(monster_factory, player):
+def _bossLevel(monster_factory, player):
     
     dungeon = fileio.getCustomDungeon("final.map")
     floor_def = level.FloorDefinition(8, (), monster_factory)
     ret_level = constructLevelFromDungeon(dungeon, floor_def, player)
     return ret_level
+
+def nextLevel(floor_def, floor, player):
+    """
+    Return a level corresponding to the floor given.
+    """
+
+    if floor == 8:
+        return _bossLevel(floor_def[1].monster_factory, player)
+    else:
+        return _randomLevel(floor_def[floor], player)
 
 def constructLevelFromDungeon(dungeon, floor_def, player):
     """
