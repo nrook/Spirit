@@ -61,7 +61,7 @@ class LevelTick(Event):
         self.currentLevel.player.deck.draw()
         return config.TURN_TICKS
 
-class summoningEvent(Event):
+class SummoningEvent(Event):
     """
     An event which creates enemies when all enemies on the field are dead.
     """
@@ -74,6 +74,15 @@ class summoningEvent(Event):
         """
         Check if all enemies are dead. If so, summon new ones.
         """
+        
+        for d in self.currentLevel.dudeLayer:
+            if not d.isPlayer():
+                return config.TURN_TICKS
+
+        action.Summon(self.currentLevel, self.summons_so_far).do()
+        self.summons_so_far += 1
+
+        return config.TURN_TICKS
 
 def isEventAtCoords(event_class, coords, level_):
     """

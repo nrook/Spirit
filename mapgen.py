@@ -8,6 +8,7 @@ import coordinates
 import level
 import log
 import dude
+import events
 import config
 import fileio
 
@@ -294,6 +295,7 @@ def _bossLevel(monster_factory, player):
     dungeon = fileio.getCustomDungeon("final.map")
     floor_def = level.FloorDefinition(8, (), monster_factory)
     ret_level = constructLevelFromDungeon(dungeon, floor_def, player)
+    ret_level.addEvent(events.SummoningEvent(ret_level), 0)
     return ret_level
 
 def nextLevel(floor_def, floor, player):

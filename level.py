@@ -432,6 +432,25 @@ class Level(object):
         self.dudeLayer.moveObject(movedDude, moveCoords)
         self.__addCharacterToMap(movedDude.getCurGlyph(), movedDude.coords, self.__DUDE_HEIGHT)
 
+    def createMonster(self, mon_name, coords):
+        """
+        Create a monster of the name mon_name.
+
+        If the coordinates are already occupied, raise an OccupiedLocationError.
+        """
+        
+        if not self.isEmpty(coords):
+            raise ValueError(
+                "%s in which monster %s was created is a wall!"
+                % (coords, mon_name))
+        if coords in self.dudeLayer:
+            raise exc.OccupiedLocationError(
+                "Location %s where %s was created is already occupied!"
+                % (coords, mon_name))
+
+        new_mon = self.definition.monster_factory.create(mon_name)
+        self.addDude(new_mon, coords, True)
+
     def makeNoise(self, message, center):
         """
         Add a message to the queue provided a certain square is in player FOV.
@@ -479,7 +498,8 @@ class Level(object):
         Add an event to the level.
         """
         self.events.append(event)
-        self.__queue.put(event, self.time + execution_time)
+        if self.__queue is not None:
+            self.__queue.put(event, self.time + execution_time)
 
     def next(self):
         """

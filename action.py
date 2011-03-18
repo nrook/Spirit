@@ -581,6 +581,37 @@ class HasteAll(Action):
 
         return self.source.speed
 
+class Summon(Action):
+    """
+    An action representing the boss summoning foes.
+    """
+
+    CENTER = (24, 24)
+    SUMMONS = ( (
+        ("lancer", (-1, -1)),
+        ("lancer", (-1, 1)),
+        ("lancer", (1, -1)),
+        ("lancer", (1, 1))
+    ), (
+        ("boxer", (2, 0)),
+        ("boxer", (-2, 0))
+    ), (
+        ("Bertrand the Whisperer", (0, 0)),
+    ) )
+
+    def __init__(self, level_, prev_summons):
+        Action.__init__(self, "SUMMON", "Enemies ahoy!")
+        self.level_ = level_
+        self.prev_summons = prev_summons
+    
+    def do(self):
+        if self.prev_summons < len(self.SUMMONS):
+            self.level_.messages.append(self.message)
+            enemy_list = self.SUMMONS[self.prev_summons]
+            for (name, coords) in enemy_list:
+                real_coords = coordinates.add(coords, self.CENTER)
+                mon = self.level_.createMonster(name, real_coords)
+
 def is_generic_action(act):
     """
     Return True if the action passed is a generic action both lots of players

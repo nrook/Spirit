@@ -46,6 +46,11 @@ class TagLocationError(InvalidDataError):
     Raised when a tag cannot be found in a file.
     """
 
+class OccupiedLocationError(StandardError):
+    """
+    Raised when a location is already occupied.
+    """
+
 def check_in_array(coord, shape, name = "The coordinates"):
     """
     Raise a ValueError if coord lies outside the array whose shape is shape.
